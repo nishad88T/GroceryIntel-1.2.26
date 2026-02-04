@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Receipt } from "@/entities/Receipt";
-import { User } from "@/entities/User";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +21,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/components/utils/errorMessage";
+import { fetchHouseholdContext } from "@/lib/household";
 
 import ReceiptList from "../components/receipts/ReceiptList";
 import ReceiptDetailModal from "../components/receipts/ReceiptDetailModal";
@@ -38,6 +38,7 @@ export default function ReceiptsPage() {
     const [selectedReceipt, setSelectedReceipt] = useState(null);
     const [editingReceipt, setEditingReceipt] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
+    const [householdId, setHouseholdId] = useState(null);
     const [validationFilter, setValidationFilter] = useState("all");
     const [loadError, setLoadError] = useState(null);
     const [savedReceiptForFeedback, setSavedReceiptForFeedback] = useState(null);
@@ -52,14 +53,15 @@ export default function ReceiptsPage() {
         try {
             setLoading(true);
             setLoadError(null);
-            const user = await User.me();
+            const { user, householdId: resolvedHouseholdId } = await fetchHouseholdContext();
             setCurrentUser(user);
+            setHouseholdId(resolvedHouseholdId);
             
             console.log("Loading receipts for user:", user);
             
-            if (user && user.household_id) {
-                console.log("Loading receipts for household:", user.household_id);
-                const data = await Receipt.filter({ household_id: user.household_id }, "-purchase_date", 500);
+            if (user && resolvedHouseholdId) {
+                console.log("Loading receipts for household:", resolvedHouseholdId);
+                const data = await Receipt.filter({ household_id: resolvedHouseholdId }, "-purchase_date", 500);
                 console.log("Loaded receipts:", data?.length || 0);
                 
                 // Filter out test data receipts
@@ -103,9 +105,10 @@ export default function ReceiptsPage() {
             }
 
             try {
-                const user = await User.me();
-                if (user && user.household_id) {
-                    const data = await Receipt.filter({ household_id: user.household_id }, "-purchase_date", 500);
+                const { householdId: resolvedHouseholdId } = await fetchHouseholdContext();
+                const effectiveHouseholdId = resolvedHouseholdId || householdId;
+                if (effectiveHouseholdId) {
+                    const data = await Receipt.filter({ household_id: effectiveHouseholdId }, "-purchase_date", 500);
                     
                     // Only update if there are changes to avoid unnecessary re-renders
                     const hasProcessingReceipts = data.some(r => 
@@ -130,7 +133,7 @@ export default function ReceiptsPage() {
         }, 15000); // Check every 15 seconds (reduced frequency to minimize network load)
         
         return () => clearInterval(interval);
-    }, [refreshFailCount]); // Include refreshFailCount in dependencies
+    }, [refreshFailCount, householdId]); // Include refreshFailCount in dependencies
 
     useEffect(() => {
         const urlParams = new URLSearchParams(location.search);
@@ -223,7 +226,8 @@ export default function ReceiptsPage() {
     const uniqueSupermarkets = [...new Set(receipts.map(r => r.supermarket).filter(Boolean))];
 
     const handleReceiptUpdated = async (id, updatedData) => {
-        if (!currentUser || !currentUser.household_id) {
+        const effectiveHouseholdId = householdId || currentUser?.household_id;
+        if (!currentUser || !effectiveHouseholdId) {
             console.error("Cannot update receipt: No current user or household ID.");
             return;
         }
@@ -231,7 +235,7 @@ export default function ReceiptsPage() {
         try {
             let finalData = {
                 ...updatedData,
-                household_id: currentUser.household_id,
+                household_id: effectiveHouseholdId,
                 user_email: currentUser.email,
             };
 
