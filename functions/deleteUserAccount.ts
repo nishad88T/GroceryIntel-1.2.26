@@ -1,5 +1,6 @@
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 // Reusable email header with actual logo
 function getEmailHeader() {
@@ -39,6 +40,7 @@ Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
+        const householdId = await resolveHouseholdId(base44, user);
 
         if (!user || !user.email) {
             return new Response(JSON.stringify({ error: 'Unauthorized: User not found.' }), { status: 401, headers: { "Content-Type": "application/json" } });
@@ -113,7 +115,7 @@ Deno.serve(async (req) => {
                 await base44.asServiceRole.entities.CreditLog.create({
                     user_id: user.id,
                     user_email: user.email,
-                    household_id: user.household_id || null,
+                    household_id: householdId || null,
                     event_type: 'account_deletion_email',
                     credits_consumed: 1,
                     reference_id: user.id,

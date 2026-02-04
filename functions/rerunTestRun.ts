@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 Deno.serve(async (req) => {
     try {
@@ -7,6 +8,10 @@ Deno.serve(async (req) => {
 
         if (!user || user.role !== 'admin') {
             return Response.json({ error: 'Unauthorized - Admin only' }, { status: 403 });
+        }
+        const householdId = await resolveHouseholdId(base44, user);
+        if (!householdId) {
+            return Response.json({ error: 'Admin user has no household' }, { status: 400 });
         }
 
         const { original_test_run_id } = await req.json();
@@ -67,7 +72,7 @@ Deno.serve(async (req) => {
                 receipt_image_urls: imageUrls,
                 currency: user.currency || 'GBP',
                 validation_status: 'processing_background',
-                household_id: user.household_id,
+                household_id: householdId,
                 user_email: user.email,
                 is_test_data: true,
                 items: []
@@ -81,7 +86,7 @@ Deno.serve(async (req) => {
                 imageUrls: imageUrls,
                 storeName: "Test Receipt (Rerun)",
                 totalAmount: 0,
-                householdId: user.household_id,
+                householdId: householdId,
                 userEmail: user.email
             }).catch(err => console.log("Background processing started for rerun receipt"));
         }

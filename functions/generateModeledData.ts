@@ -1,6 +1,7 @@
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 import { formatISO, startOfMonth, endOfMonth, subMonths, addMonths, getDate, getDaysInMonth, parseISO } from 'npm:date-fns@2.30.0';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 // --- CONFIGURATION ---
 const MONTHS_TO_GENERATE = 6;
@@ -128,7 +129,8 @@ Deno.serve(async (req) => {
             return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { "Content-Type": "application/json" } });
         }
 
-        if (!user.household_id) {
+        const householdId = await resolveHouseholdId(base44, user);
+        if (!householdId) {
             return new Response(JSON.stringify({ error: 'Household not set up. Cannot generate or remove modeled data.' }), { status: 400, headers: { "Content-Type": "application/json" } });
         }
 
@@ -196,7 +198,7 @@ Deno.serve(async (req) => {
                     is_active: false,
                     is_test_data: true,
                     // FIX: Add required household and user fields
-                    household_id: user.household_id,
+                    household_id: householdId,
                     user_email: user.email,
                 });
                 
@@ -225,7 +227,7 @@ Deno.serve(async (req) => {
                         currency: user.currency || 'GBP',
                         is_test_data: true,
                          // FIX: Add required household and user fields
-                        household_id: user.household_id,
+                        household_id: householdId,
                         user_email: user.email,
                     });
                 }
