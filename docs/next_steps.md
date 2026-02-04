@@ -2,14 +2,11 @@
 
 ## 1) Confirm Ground Truth
 - Export your current Supabase schema (tables, functions, policies, triggers) and compare against the Base44 spec.
-- Align any missing tables, columns, or policies with the behavior described in `docs/app_functionality_2.2.26.md`.
+- Validate the **existing** `profiles` + `household_members` model and keep household membership logic in DB helpers.
 
-## 2) Implement Backend Foundations
-- Apply the SQL scaffolding in `docs/supabase_edge_setup.sql` and extend it to match your exact schema.
-- Recreate or validate triggers for:
-  - `handle_new_user`
-  - `set_updated_at`
-  - household creation + invite flow
+## 2) Implement Backend Foundations (No Scaffold SQL)
+- Keep your existing `handle_new_user`, `create_household_and_join`, `create_household_invite_code`, `join_household_by_code`, `is_household_admin`, and `is_household_member` functions.
+- Ensure all Edge/serverless handlers reference `profiles` and `household_members` rather than `users.household_id`.
 
 ## 3) Rebuild the Receipt Pipeline (Single Vertical Slice)
 - Implement a single end-to-end flow:

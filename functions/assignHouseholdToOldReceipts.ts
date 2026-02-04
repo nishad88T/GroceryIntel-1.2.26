@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 // Version 3.0 - Enhanced to handle orphaned records with missing user identifiers
 Deno.serve(async (req) => {
@@ -9,14 +10,14 @@ Deno.serve(async (req) => {
         if (!user) {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
-        
-        if (!user.household_id) {
+
+        const currentHouseholdId = await resolveHouseholdId(base44, user);
+        if (!currentHouseholdId) {
             return Response.json({ error: 'User does not have a household assigned. Please set up your household first.' }, { status: 400 });
         }
 
         const userEmail = user.email;
         const userId = user.id;
-        const currentHouseholdId = user.household_id;
 
         console.log("=====================================");
         console.log("STARTING ENHANCED DATA RECOVERY RUN - V3.0");
