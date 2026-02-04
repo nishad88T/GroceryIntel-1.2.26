@@ -21,14 +21,31 @@ Deno.serve(async (req) => {
             const suggestedModel = 'AnalyzeDocumentTables';
             console.log(`[Background Processing] Using model: ${suggestedModel}`);
             
-            // Step 2: Invoke textractOCR to extract items with suggested model
-            console.log(`[Background Processing] Invoking textractOCR for receipt ${receiptId} with model: ${suggestedModel}`);
-            const ocrResponse = await base44.asServiceRole.functions.invoke('textractOCR', {
-                imageUrls: imageUrls,
-                storeName: storeName || '',
-                totalAmount: totalAmount || 0,
-                modelType: suggestedModel
-            });
+            // Step 2: Invoke OCR (prefer Vercel endpoint if configured)
+            let ocrResponse;
+            const vercelOcrEndpoint = Deno.env.get('VERCEL_OCR_ENDPOINT');
+            if (vercelOcrEndpoint) {
+                console.log(`[Background Processing] Invoking Vercel OCR for receipt ${receiptId}`);
+                const response = await fetch(vercelOcrEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        imageUrls,
+                        storeName: storeName || '',
+                        totalAmount: totalAmount || 0,
+                        modelType: suggestedModel
+                    })
+                });
+                ocrResponse = { data: await response.json() };
+            } else {
+                console.log(`[Background Processing] Invoking textractOCR for receipt ${receiptId} with model: ${suggestedModel}`);
+                ocrResponse = await base44.asServiceRole.functions.invoke('textractOCR', {
+                    imageUrls: imageUrls,
+                    storeName: storeName || '',
+                    totalAmount: totalAmount || 0,
+                    modelType: suggestedModel
+                });
+            }
 
             if (!ocrResponse || !ocrResponse.data || !ocrResponse.data.success) {
                 console.error(`[Background Processing] OCR failed for receipt ${receiptId}:`, ocrResponse);

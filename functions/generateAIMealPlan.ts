@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 Deno.serve(async (req) => {
     try {
@@ -8,6 +9,7 @@ Deno.serve(async (req) => {
         if (!user) {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
+        const householdId = await resolveHouseholdId(base44, user);
 
         const { 
             week_start_date,
@@ -21,7 +23,7 @@ Deno.serve(async (req) => {
             existing_plan = null
         } = await req.json();
 
-        if (!week_start_date || !user.household_id) {
+        if (!week_start_date || !householdId) {
             return Response.json({ 
                 error: 'Missing required parameters: week_start_date and household_id' 
             }, { status: 400 });
@@ -29,7 +31,7 @@ Deno.serve(async (req) => {
 
         // Get household recipes
         const householdRecipes = await base44.asServiceRole.entities.Recipe.filter({
-            household_id: user.household_id
+            household_id: householdId
         }, null, 200);
 
         const curatedRecipes = await base44.asServiceRole.entities.Recipe.filter({
