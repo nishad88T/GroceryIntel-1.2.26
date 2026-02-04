@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import OpenAI from 'npm:openai@4.77.3';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 const openai = new OpenAI({
     apiKey: Deno.env.get("OPENAI_API_KEY"),
@@ -15,6 +16,11 @@ Deno.serve(async (req) => {
         }
 
         const insightFrequency = user.insight_frequency || 'weekly';
+        const householdId = await resolveHouseholdId(base44, user);
+
+        if (!householdId) {
+            return Response.json({ error: 'User has no household' }, { status: 400 });
+        }
 
         // Fetch the last 8 weeks of weekly caches for comprehensive trend analysis
         const caches = await base44.entities.InsightCache.filter({
@@ -53,7 +59,7 @@ Deno.serve(async (req) => {
 
         // Fetch active budget
         const budgets = await base44.entities.Budget.filter({
-            household_id: user.household_id,
+            household_id: householdId,
             is_active: true
         });
 
@@ -92,7 +98,7 @@ Deno.serve(async (req) => {
         await base44.entities.CreditLog.create({
             user_id: user.id,
             user_email: user.email,
-            household_id: user.household_id,
+            household_id: householdId,
             event_type: 'ai_shopping_list',
             credits_consumed: 1,
             reference_id: latestCache.id
