@@ -74,25 +74,39 @@ Deno.serve(async (req) => {
             insightFrequency
         );
 
-        // Call GPT-4.1-mini for advanced insights
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4.1-mini",
-            messages: [
-                {
-                    role: "system",
-                    content: "You are an elite personal finance analyst with expertise in grocery spending optimization, inflation economics, and behavioral finance. Your insights are data-driven, forward-looking, and immediately actionable. You identify trends, volatility patterns, and opportunities that users wouldn't notice themselves."
-                },
-                {
-                    role: "user",
-                    content: prompt
-                }
-            ],
-            response_format: { type: "json_object" },
-            temperature: 0.7,
-            max_tokens: 3000
-        });
+        // Call GPT-4o for advanced insights (prefer Vercel endpoint if configured)
+        let insights;
+        const vercelInsightsEndpoint = Deno.env.get('VERCEL_LLM_INSIGHTS_ENDPOINT');
+        if (vercelInsightsEndpoint) {
+            const response = await fetch(vercelInsightsEndpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt,
+                    response_schema: { type: 'object' }
+                })
+            });
+            insights = await response.json();
+        } else {
+            const completion = await openai.chat.completions.create({
+                model: "gpt-4o",
+                messages: [
+                    {
+                        role: "system",
+                        content: "You are an elite personal finance analyst with expertise in grocery spending optimization, inflation economics, and behavioral finance. Your insights are data-driven, forward-looking, and immediately actionable. You identify trends, volatility patterns, and opportunities that users wouldn't notice themselves."
+                    },
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+                response_format: { type: "json_object" },
+                temperature: 0.7,
+                max_tokens: 3000
+            });
 
-        const insights = JSON.parse(completion.choices[0].message.content);
+            insights = JSON.parse(completion.choices[0].message.content);
+        }
 
         // Log credit consumption for LLM call
         await base44.entities.CreditLog.create({
@@ -123,7 +137,7 @@ Deno.serve(async (req) => {
                 budget_included: activeBudget !== null,
                 insight_frequency: insightFrequency
             },
-            tokens_used: completion.usage.total_tokens
+            tokens_used: null
         });
 
     } catch (error) {
