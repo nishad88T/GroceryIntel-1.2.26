@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 import { addMonths, addWeeks, addDays, startOfMonth, endOfMonth, format } from 'npm:date-fns@3.0.0';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 Deno.serve(async (req) => {
     try {
@@ -10,16 +11,17 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
         
-        if (!user.household_id) {
+        const householdId = await resolveHouseholdId(base44, user);
+        if (!householdId) {
             return Response.json({ error: 'User does not have a household assigned.' }, { status: 400 });
         }
 
         console.log("=== BUDGET ROLLOVER STARTED ===");
-        console.log(`User: ${user.email}, Household: ${user.household_id}`);
+        console.log(`User: ${user.email}, Household: ${householdId}`);
 
         // Find the current active budget
         const activeBudgets = await base44.asServiceRole.entities.Budget.filter({
-            household_id: user.household_id,
+            household_id: householdId,
             is_active: true
         });
 
@@ -49,7 +51,7 @@ Deno.serve(async (req) => {
 
         // Calculate total spending for the expired budget period (for record-keeping)
         const receiptsInPeriod = await base44.asServiceRole.entities.Receipt.filter({
-            household_id: user.household_id
+            household_id: householdId
         });
         
         const periodReceipts = receiptsInPeriod.filter(r => {
@@ -125,7 +127,7 @@ Deno.serve(async (req) => {
             start_day: currentBudget.start_day,
             category_limits: currentBudget.category_limits || {},
             is_active: true,
-            household_id: user.household_id,
+            household_id: householdId,
             user_email: user.email
         };
 

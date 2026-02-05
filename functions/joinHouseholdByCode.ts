@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 Deno.serve(async (req) => {
     try {
@@ -29,15 +30,33 @@ Deno.serve(async (req) => {
 
         const household = households[0];
 
+        const currentHouseholdId = await resolveHouseholdId(base44, user);
+
         // Check if user is already in a household
-        if (user.household_id && user.household_id === household.id) {
+        if (currentHouseholdId && currentHouseholdId === household.id) {
             return Response.json({ 
                 error: 'You are already a member of this household.' 
             }, { status: 400 });
         }
 
-        // Update user's household_id
-        await base44.auth.updateMe({ household_id: household.id });
+        // Create household membership (profiles + household_members model)
+        try {
+            await base44.asServiceRole.entities.HouseholdMember.create({
+                household_id: household.id,
+                user_id: user.id,
+                role: 'member'
+            });
+        } catch (membershipError) {
+            await base44.asServiceRole.entities.HouseholdMember.create({
+                household_id: household.id,
+                user_id: user.id
+            });
+        }
+
+        // Backward compatibility: keep profile in sync if still present
+        if (user.household_id !== household.id) {
+            await base44.auth.updateMe({ household_id: household.id });
+        }
         
         // Tag user in Brevo as household_joined
         try {

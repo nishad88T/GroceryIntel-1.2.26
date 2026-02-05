@@ -117,40 +117,83 @@ IMPORTANT for receipt_insights:
         
         let llmResponse;
         try {
-            llmResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
-                prompt: enhancementPrompt,
-                response_json_schema: {
-                    type: "object",
-                    properties: {
-                        enhanced_items: {
-                            type: "array",
-                            items: {
-                                type: "object",
-                                properties: {
-                                    original_index: { type: "number" },
-                                    canonical_name: { type: "string" },
-                                    brand: { type: "string" },
-                                    category: { type: "string" },
-                                    is_own_brand: { type: "boolean" },
-                                    pack_size_value: { type: ["number", "null"] },
-                                    pack_size_unit: { type: ["string", "null"] }
-                                }
-                            }
-                        },
-                        receipt_insights: {
+            const vercelLlmEndpoint = Deno.env.get('VERCEL_LLM_ENDPOINT');
+            if (vercelLlmEndpoint) {
+                const response = await fetch(vercelLlmEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: enhancementPrompt,
+                        response_schema: {
                             type: "object",
                             properties: {
-                                summary: { type: "string" },
-                                highlights: { type: "array", items: { type: "string" } },
-                                categories_purchased: { type: "array", items: { type: "string" } },
-                                total_items: { type: "number" },
-                                estimated_healthy_items: { type: "number" },
-                                estimated_processed_items: { type: "number" }
+                                enhanced_items: {
+                                    type: "array",
+                                    items: {
+                                        type: "object",
+                                        properties: {
+                                            original_index: { type: "number" },
+                                            canonical_name: { type: "string" },
+                                            brand: { type: "string" },
+                                            category: { type: "string" },
+                                            is_own_brand: { type: "boolean" },
+                                            pack_size_value: { type: ["number", "null"] },
+                                            pack_size_unit: { type: ["string", "null"] }
+                                        }
+                                    }
+                                },
+                                receipt_insights: {
+                                    type: "object",
+                                    properties: {
+                                        summary: { type: "string" },
+                                        highlights: { type: "array", items: { type: "string" } },
+                                        categories_purchased: { type: "array", items: { type: "string" } },
+                                        total_items: { type: "number" },
+                                        estimated_healthy_items: { type: "number" },
+                                        estimated_processed_items: { type: "number" }
+                                    }
+                                }
+                            }
+                        }
+                    })
+                });
+                llmResponse = await response.json();
+            } else {
+                llmResponse = await base44.asServiceRole.integrations.Core.InvokeLLM({
+                    prompt: enhancementPrompt,
+                    response_json_schema: {
+                        type: "object",
+                        properties: {
+                            enhanced_items: {
+                                type: "array",
+                                items: {
+                                    type: "object",
+                                    properties: {
+                                        original_index: { type: "number" },
+                                        canonical_name: { type: "string" },
+                                        brand: { type: "string" },
+                                        category: { type: "string" },
+                                        is_own_brand: { type: "boolean" },
+                                        pack_size_value: { type: ["number", "null"] },
+                                        pack_size_unit: { type: ["string", "null"] }
+                                    }
+                                }
+                            },
+                            receipt_insights: {
+                                type: "object",
+                                properties: {
+                                    summary: { type: "string" },
+                                    highlights: { type: "array", items: { type: "string" } },
+                                    categories_purchased: { type: "array", items: { type: "string" } },
+                                    total_items: { type: "number" },
+                                    estimated_healthy_items: { type: "number" },
+                                    estimated_processed_items: { type: "number" }
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
+            }
         } catch (llmError) {
             console.error(`[LLM Enhancement] LLM invocation failed for receipt ${receiptId}:`, llmError);
             // If LLM fails, throw error so processReceiptInBackground can mark as failed_processing
