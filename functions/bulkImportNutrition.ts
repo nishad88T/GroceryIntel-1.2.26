@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 Deno.serve(async (req) => {
     try {
@@ -31,7 +32,7 @@ Deno.serve(async (req) => {
         };
 
         // Get household_id from user
-        const householdId = user.household_id;
+        const householdId = await resolveHouseholdId(base44, user);
         if (!householdId) {
             return Response.json({ 
                 error: 'User does not have a household_id. Cannot store nutrition facts.' 

@@ -22,6 +22,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/components/utils/errorMessage";
+import { fetchHouseholdContext } from "@/lib/household";
 
 import CameraCapture from "../components/scan/CameraCapture";
 import ProcessingStatus from "../components/scan/ProcessingStatus";
@@ -175,8 +176,8 @@ export default function ScanReceipt() {
         setError(null);
 
         try {
-            const user = await base44.auth.me();
-            if (!user || !user.household_id) {
+            const { user, householdId } = await fetchHouseholdContext();
+            if (!user || !householdId) {
                 throw new Error("User or household not found");
             }
 
@@ -200,7 +201,7 @@ export default function ScanReceipt() {
                 receipt_image_urls: file_urls,
                 currency: user.currency || 'GBP',
                 validation_status: 'processing_background', 
-                household_id: user.household_id,
+                household_id: householdId,
                 user_email: user.email,
                 items: []
             });
@@ -212,7 +213,7 @@ export default function ScanReceipt() {
                 await base44.entities.CreditLog.create({
                     user_id: user.id,
                     user_email: user.email,
-                    household_id: user.household_id,
+                    household_id: householdId,
                     event_type: 'ocr_scan_background',
                     credits_consumed: 1,
                     reference_id: newReceipt.id,
@@ -231,7 +232,7 @@ export default function ScanReceipt() {
                     imageUrls: file_urls,
                     storeName: storeName || 'Unknown Store', // Updated for robustness
                     totalAmount: parseFloat(totalAmount) || 0, // Updated for robustness
-                    householdId: user.household_id,
+                    householdId: householdId,
                     userEmail: user.email
                 }).catch(err => {
                     console.log("Background processing initiated, may complete asynchronously:", err);

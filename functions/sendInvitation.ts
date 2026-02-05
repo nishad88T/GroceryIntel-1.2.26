@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import { v4 as uuidv4 } from 'npm:uuid@9.0.1';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 // Reusable email header with actual logo
 function getEmailHeader() {
@@ -36,13 +37,14 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
 
         const user = await base44.auth.me();
-        if (!user || !user.household_id) {
+        const householdId = await resolveHouseholdId(base44, user);
+        if (!user || !householdId) {
             return Response.json({ 
                 error: "User not authenticated or not in a household" 
             }, { status: 401 });
         }
         
-        const household = await base44.entities.Household.get(user.household_id);
+        const household = await base44.entities.Household.get(householdId);
         if (household.admin_id !== user.id) {
             return Response.json({ 
                 error: "Only the household admin can send invitations." 
@@ -54,7 +56,7 @@ Deno.serve(async (req) => {
         
         // 1. Create invitation record first
         const newInvitation = await base44.entities.HouseholdInvitation.create({
-            household_id: user.household_id,
+            household_id: householdId,
             invitee_email,
             inviter_name: user.full_name,
             token,
@@ -158,7 +160,7 @@ Deno.serve(async (req) => {
                 await base44.asServiceRole.entities.CreditLog.create({
                     user_id: user.id,
                     user_email: user.email,
-                    household_id: user.household_id,
+                    household_id: householdId,
                     event_type: 'email_invite',
                     credits_consumed: 1,
                     reference_id: newInvitation.id,
