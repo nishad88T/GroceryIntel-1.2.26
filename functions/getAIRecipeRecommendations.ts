@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 Deno.serve(async (req) => {
     try {
@@ -18,9 +19,15 @@ Deno.serve(async (req) => {
             limit = 10
         } = await req.json();
 
+        const householdId = await resolveHouseholdId(base44, user);
+
+        if (!householdId) {
+            return Response.json({ error: 'User has no household' }, { status: 400 });
+        }
+
         // Get user's meal plan history
         const mealPlans = await base44.asServiceRole.entities.MealPlan.filter({
-            household_id: user.household_id
+            household_id: householdId
         }, '-created_date', 50);
 
         // Get all recipes used in past meal plans
@@ -33,7 +40,7 @@ Deno.serve(async (req) => {
 
         // Get all available recipes
         const householdRecipes = await base44.asServiceRole.entities.Recipe.filter({
-            household_id: user.household_id
+            household_id: householdId
         }, null, 200);
 
         const curatedRecipes = await base44.asServiceRole.entities.Recipe.filter({

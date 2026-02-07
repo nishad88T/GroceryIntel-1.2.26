@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { resolveHouseholdId } from './_helpers/household.ts';
 import Stripe from 'npm:stripe@17.5.0';
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"), {
@@ -110,18 +111,19 @@ Deno.serve(async (req) => {
                         }
 
                         // If user is in a household, update the household's subscription tier and limits
-                        if (user.household_id) {
+                        const householdId = await resolveHouseholdId(base44, user);
+                        if (householdId) {
                             const scanLimits = {
                                 'free': 4,
                                 'standard': 12,
                                 'plus': 30
                             };
                             
-                            await base44.asServiceRole.entities.Household.update(user.household_id, {
+                            await base44.asServiceRole.entities.Household.update(householdId, {
                                 subscription_tier: tier,
                                 household_scan_limit: scanLimits[tier] || 12,
                             });
-                            console.log(`Household ${user.household_id} subscription updated to: ${tier}`);
+                            console.log(`Household ${householdId} subscription updated to: ${tier}`);
                         }
                     } else {
                         console.error(`User not found with email: ${customerEmail}`);
@@ -153,12 +155,13 @@ Deno.serve(async (req) => {
                         console.log(`User subscription canceled for user ID: ${userId}`);
 
                         // If user is in a household, reset household subscription to free
-                        if (user.household_id) {
-                            await base44.asServiceRole.entities.Household.update(user.household_id, {
+                        const householdId = await resolveHouseholdId(base44, user);
+                        if (householdId) {
+                            await base44.asServiceRole.entities.Household.update(householdId, {
                                 subscription_tier: 'free',
                                 household_scan_limit: 4,
                             });
-                            console.log(`Household ${user.household_id} subscription reset to free`);
+                            console.log(`Household ${householdId} subscription reset to free`);
                         }
                     }
                 } catch (error) {
@@ -243,18 +246,19 @@ Deno.serve(async (req) => {
                         console.log(`User subscription updated for user ID: ${userId}`);
 
                         // If user is in a household, update household subscription
-                        if (user.household_id) {
+                        const householdId = await resolveHouseholdId(base44, user);
+                        if (householdId) {
                             const scanLimits = {
                                 'free': 4,
                                 'standard': 12,
                                 'plus': 30
                             };
                             
-                            await base44.asServiceRole.entities.Household.update(user.household_id, {
+                            await base44.asServiceRole.entities.Household.update(householdId, {
                                 subscription_tier: tier,
                                 household_scan_limit: scanLimits[tier] || 12,
                             });
-                            console.log(`Household ${user.household_id} subscription updated to: ${tier}`);
+                            console.log(`Household ${householdId} subscription updated to: ${tier}`);
                         }
                     }
                 } catch (error) {
