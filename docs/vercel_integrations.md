@@ -25,5 +25,6 @@ Set these in your Supabase Edge runtime:
 - `VERCEL_LLM_INSIGHTS_ENDPOINT` → your Vercel LLM insights endpoint (e.g. `https://yourapp.vercel.app/api/llm/insights`)
 
 ## Notes
+- Vercel deployment relies on platform defaults; no `vercel.json` runtime overrides are required.
 - `processReceiptInBackground` will call `VERCEL_OCR_ENDPOINT` if set, otherwise it falls back to `textractOCR`.
 - `generateReceiptInsightsInBackground` will call `VERCEL_LLM_ENDPOINT` if set, otherwise it falls back to Base44 LLM.
