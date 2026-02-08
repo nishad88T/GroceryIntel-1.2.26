@@ -1,11 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 Deno.serve(async (req) => {
     try {
         const base44 = createClientFromRequest(req);
         const user = await base44.auth.me();
+        const householdId = await resolveHouseholdId(base44, user);
 
-        if (!user || !user.household_id) {
+        if (!user || !householdId) {
             return Response.json({ error: 'Unauthorized or no household' }, { status: 401 });
         }
 
@@ -16,7 +18,7 @@ Deno.serve(async (req) => {
         }
 
         // Fetch household and check limits
-        const household = await base44.asServiceRole.entities.Household.get(user.household_id);
+        const household = await base44.asServiceRole.entities.Household.get(householdId);
         const parsedThisMonth = household.parsed_recipes_this_month || 0;
 
         // Check monthly limit (90 for both standard and plus)
@@ -32,7 +34,7 @@ Deno.serve(async (req) => {
         // Check storage limit (540 recipes per household)
         const existingRecipes = await base44.asServiceRole.entities.Recipe.filter({
             type: 'user_parsed',
-            household_id: user.household_id
+            household_id: householdId
         });
         const storageLimit = 540;
         if (existingRecipes.length >= storageLimit) {
@@ -230,7 +232,7 @@ ROBUSTNESS:
         const recipeData = {
             ...llmResult,
             type: 'user_parsed',
-            household_id: user.household_id,
+            household_id: householdId,
             source_url: recipe_url || '',
             image_url: llmResult.image_url || '',
             description: llmResult.instructions ? llmResult.instructions.join('\n\n') : '',
@@ -256,7 +258,7 @@ ROBUSTNESS:
         const newRecipe = await base44.asServiceRole.entities.Recipe.create(recipeData);
 
         // Update household parsed count
-        await base44.asServiceRole.entities.Household.update(user.household_id, {
+        await base44.asServiceRole.entities.Household.update(householdId, {
             parsed_recipes_this_month: parsedThisMonth + 1
         });
 
@@ -264,7 +266,7 @@ ROBUSTNESS:
         await base44.asServiceRole.entities.CreditLog.create({
             user_id: user.id,
             user_email: user.email,
-            household_id: user.household_id,
+            household_id: householdId,
             event_type: 'recipe_parsing',
             credits_consumed: 1,
             reference_id: newRecipe.id,

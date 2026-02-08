@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { getHouseholdMembers, resolveHouseholdId } from './_helpers/household.ts';
 
 Deno.serve(async (req) => {
     try {
@@ -9,9 +10,10 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        console.log("[getMyHousehold] User:", user.email, "household_id:", user.household_id);
+        const householdId = await resolveHouseholdId(base44, user);
+        console.log("[getMyHousehold] User:", user.email, "household_id:", householdId);
 
-        if (!user.household_id) {
+        if (!householdId) {
             return Response.json({ 
                 household: null,
                 members: [],
@@ -21,7 +23,7 @@ Deno.serve(async (req) => {
 
         // Use service role to bypass RLS and get the household
         const households = await base44.asServiceRole.entities.Household.filter({ 
-            id: user.household_id 
+            id: householdId 
         });
 
         console.log("[getMyHousehold] Households found:", households?.length);
@@ -37,15 +39,13 @@ Deno.serve(async (req) => {
         const household = households[0];
 
         // Get all members of this household
-        const members = await base44.asServiceRole.entities.User.filter({ 
-            household_id: user.household_id 
-        });
-
-        console.log("[getMyHousehold] Members found:", members?.length);
+        const { memberships, profiles } = await getHouseholdMembers(base44, householdId);
+        console.log("[getMyHousehold] Members found:", profiles.length);
 
         return Response.json({ 
             household,
-            members: members || [],
+            members: profiles,
+            memberships,
             currentUserId: user.id
         });
 
