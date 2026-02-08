@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 Deno.serve(async (req) => {
     try {
@@ -78,7 +79,7 @@ Deno.serve(async (req) => {
         }
 
         const user = users[0];
-        const householdId = user.household_id;
+        const householdId = await resolveHouseholdId(base44, user);
 
         if (!householdId) {
             console.warn(`[Email Ingestion] User ${sender_email} has no household`);
