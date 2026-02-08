@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 const ONS_URL = 'https://www.ons.gov.uk/economy/inflationandpriceindices/timeseries/l55o/mm23/data';
 
@@ -24,10 +25,11 @@ Deno.serve(async (req) => {
     
     // Log the credit event upon successful fetch
     try {
+        const householdId = await resolveHouseholdId(base44, user);
         await base44.asServiceRole.entities.CreditLog.create({
             user_id: user.id,
             user_email: user.email,
-            household_id: user.household_id,
+            household_id: householdId,
             event_type: 'ons_data_api',
             credits_consumed: 1,
             timestamp: new Date().toISOString(),
