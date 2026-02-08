@@ -26,5 +26,6 @@ Set these in your Supabase Edge runtime:
 
 ## Notes
 - Vercel deployment uses `vercel.json` to set the Node.js runtime for API routes (e.g. `@vercel/node@3.0.0`).
+- Ensure Vercel builds use Node 20 by setting the project’s Node.js version or honoring `package.json`/`.nvmrc` settings.
 - `processReceiptInBackground` will call `VERCEL_OCR_ENDPOINT` if set, otherwise it falls back to `textractOCR`.
 - `generateReceiptInsightsInBackground` will call `VERCEL_LLM_ENDPOINT` if set, otherwise it falls back to Base44 LLM.
