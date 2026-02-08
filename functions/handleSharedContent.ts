@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 Deno.serve(async (req) => {
     try {
@@ -15,7 +16,8 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Content type is required' }, { status: 400 });
         }
 
-        const effectiveHouseholdId = household_id || user.household_id;
+        const resolvedHouseholdId = await resolveHouseholdId(base44, user);
+        const effectiveHouseholdId = household_id || resolvedHouseholdId;
         const effectiveUserEmail = user_email || user.email;
 
         if (!effectiveHouseholdId) {
