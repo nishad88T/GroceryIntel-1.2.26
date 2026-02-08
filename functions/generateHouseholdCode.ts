@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 // Generate a unique 6-character code
 function generateCode() {
@@ -20,13 +21,17 @@ Deno.serve(async (req) => {
         }
 
         const { household_id } = await req.json();
+        const resolvedHouseholdId = household_id || await resolveHouseholdId(base44, user);
 
-        if (!household_id) {
+        if (!resolvedHouseholdId) {
             return Response.json({ error: 'household_id is required' }, { status: 400 });
         }
 
         // Check if household already has a code
-        const household = await base44.entities.Household.get(household_id);
+        const household = await base44.entities.Household.get(resolvedHouseholdId);
+        if (household.admin_id !== user.id) {
+            return Response.json({ error: 'Only household admins can generate invite codes.' }, { status: 403 });
+        }
         
         if (household.invite_code) {
             return Response.json({ 
@@ -60,7 +65,7 @@ Deno.serve(async (req) => {
         }
 
         // Update household with the code
-        await base44.entities.Household.update(household_id, { invite_code: code });
+        await base44.entities.Household.update(resolvedHouseholdId, { invite_code: code });
 
         return Response.json({ 
             success: true, 

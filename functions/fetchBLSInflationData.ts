@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 // BLS Series IDs for food categories
 const BLS_SERIES = {
@@ -21,6 +22,7 @@ Deno.serve(async (req) => {
         if (!user || user.role !== 'admin') {
             return Response.json({ error: 'Unauthorized - admin only' }, { status: 403 });
         }
+        const householdId = await resolveHouseholdId(base44, user);
 
         const results = {
             success: true,
@@ -112,7 +114,7 @@ Deno.serve(async (req) => {
         await base44.asServiceRole.entities.CreditLog.create({
             user_id: user.id,
             user_email: user.email,
-            household_id: user.household_id,
+            household_id: householdId,
             event_type: 'ons_data_api',
             credits_consumed: 1,
             timestamp: new Date().toISOString()
