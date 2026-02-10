@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 
-const authProvider = import.meta.env.VITE_SUPABASE_AUTH_PROVIDER || 'google';
+const authProvider = import.meta.env.VITE_SUPABASE_AUTH_PROVIDER || 'email';
 const storageBucket = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'public';
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -154,6 +154,12 @@ const auth = {
     return Boolean(data?.session);
   },
   async redirectToLogin(redirectTo) {
+    if (authProvider === 'email') {
+      const unsupported = new Error('OAuth provider is not configured. Use email sign-in.');
+      unsupported.code = 'oauth_not_configured';
+      throw unsupported;
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: authProvider,
       options: { redirectTo: redirectTo || window.location.href }
@@ -161,6 +167,16 @@ const auth = {
     if (error) {
       throw error;
     }
+  },
+  async signInWithPassword({ email, password }) {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    return data;
+  },
+  async signUpWithPassword({ email, password }) {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+    return data;
   },
   async updateMe(updates) {
     const { data, error } = await supabase.auth.getUser();

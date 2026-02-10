@@ -1,5 +1,5 @@
 import "./App.css";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClientInstance } from "@/lib/query-client";
@@ -40,11 +40,57 @@ const LayoutWrapper = ({ children, currentPageName }) =>
   );
 
 const LoginRedirect = () => {
+  const [showEmailAuth, setShowEmailAuth] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [status, setStatus] = useState("");
+
   useEffect(() => {
     appClient.auth.redirectToLogin(window.location.href).catch((error) => {
       console.error("Failed to start auth redirect:", error);
+      setShowEmailAuth(true);
+      setStatus(error?.message || "Sign-in redirect failed");
     });
   }, []);
+
+  const handleSignIn = async () => {
+    try {
+      setStatus("Signing in...");
+      await appClient.auth.signInWithPassword({ email, password });
+      setStatus("Signed in. Reloading...");
+      window.location.reload();
+    } catch (error) {
+      setStatus(error?.message || "Sign in failed");
+    }
+  };
+
+  const handleSignUp = async () => {
+    try {
+      setStatus("Creating account...");
+      await appClient.auth.signUpWithPassword({ email, password });
+      setStatus("Check your email for confirmation (if enabled), then sign in.");
+    } catch (error) {
+      setStatus(error?.message || "Sign up failed");
+    }
+  };
+
+  if (showEmailAuth) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <div className="w-full max-w-md rounded-lg border bg-white p-6 shadow-sm space-y-3">
+          <h1 className="text-xl font-semibold">Sign in to GroceryIntel</h1>
+          <p className="text-sm text-slate-500">OAuth provider is not enabled. Use email/password below.</p>
+          <input className="w-full border rounded px-3 py-2" type="email" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} />
+          <input className="w-full border rounded px-3 py-2" type="password" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)} />
+          <div className="flex gap-2">
+            <button className="px-4 py-2 rounded bg-emerald-600 text-white" onClick={handleSignIn}>Sign in</button>
+            <button className="px-4 py-2 rounded border" onClick={handleSignUp}>Sign up</button>
+          </div>
+          {status ? <p className="text-sm text-slate-600">{status}</p> : null}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center">
