@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import OpenAI from 'npm:openai@4.77.3';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 const openai = new OpenAI({
     apiKey: Deno.env.get("OPENAI_API_KEY"),
@@ -15,6 +16,11 @@ Deno.serve(async (req) => {
         }
 
         const insightFrequency = user.insight_frequency || 'weekly';
+        const householdId = await resolveHouseholdId(base44, user);
+
+        if (!householdId) {
+            return Response.json({ error: 'User has no household' }, { status: 400 });
+        }
 
         // Fetch the last 8 weeks of weekly caches for comprehensive trend analysis
         const caches = await base44.entities.InsightCache.filter({
@@ -53,7 +59,7 @@ Deno.serve(async (req) => {
 
         // Fetch active budget
         const budgets = await base44.entities.Budget.filter({
-            household_id: user.household_id,
+            household_id: householdId,
             is_active: true
         });
 
@@ -68,31 +74,45 @@ Deno.serve(async (req) => {
             insightFrequency
         );
 
-        // Call GPT-4.1-mini for advanced insights
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4.1-mini",
-            messages: [
-                {
-                    role: "system",
-                    content: "You are an elite personal finance analyst with expertise in grocery spending optimization, inflation economics, and behavioral finance. Your insights are data-driven, forward-looking, and immediately actionable. You identify trends, volatility patterns, and opportunities that users wouldn't notice themselves."
-                },
-                {
-                    role: "user",
-                    content: prompt
-                }
-            ],
-            response_format: { type: "json_object" },
-            temperature: 0.7,
-            max_tokens: 3000
-        });
+        // Call GPT-4o for advanced insights (prefer Vercel endpoint if configured)
+        let insights;
+        const vercelInsightsEndpoint = Deno.env.get('VERCEL_LLM_INSIGHTS_ENDPOINT');
+        if (vercelInsightsEndpoint) {
+            const response = await fetch(vercelInsightsEndpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt,
+                    response_schema: { type: 'object' }
+                })
+            });
+            insights = await response.json();
+        } else {
+            const completion = await openai.chat.completions.create({
+                model: "gpt-4o",
+                messages: [
+                    {
+                        role: "system",
+                        content: "You are an elite personal finance analyst with expertise in grocery spending optimization, inflation economics, and behavioral finance. Your insights are data-driven, forward-looking, and immediately actionable. You identify trends, volatility patterns, and opportunities that users wouldn't notice themselves."
+                    },
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+                response_format: { type: "json_object" },
+                temperature: 0.7,
+                max_tokens: 3000
+            });
 
-        const insights = JSON.parse(completion.choices[0].message.content);
+            insights = JSON.parse(completion.choices[0].message.content);
+        }
 
         // Log credit consumption for LLM call
         await base44.entities.CreditLog.create({
             user_id: user.id,
             user_email: user.email,
-            household_id: user.household_id,
+            household_id: householdId,
             event_type: 'ai_shopping_list',
             credits_consumed: 1,
             reference_id: latestCache.id
@@ -117,7 +137,7 @@ Deno.serve(async (req) => {
                 budget_included: activeBudget !== null,
                 insight_frequency: insightFrequency
             },
-            tokens_used: completion.usage.total_tokens
+            tokens_used: null
         });
 
     } catch (error) {

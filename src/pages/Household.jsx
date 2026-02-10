@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Crown, Users, Loader2, AlertTriangle, Wrench, CheckCircle, Info, UserCircle, ScanLine } from 'lucide-react';
 import InviteForm from '@/components/household/InviteForm';
 import JoinHouseholdForm from '@/components/household/JoinHouseholdForm';
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 
 const HouseholdPage = () => {
     const [household, setHousehold] = useState(null);
@@ -23,8 +23,8 @@ const HouseholdPage = () => {
             setError(null);
             setSuccessMessage(null);
             
-            // Use base44.auth.me() to get fresh user data including household_id
-            const user = await base44.auth.me();
+            // Use appClient.auth.me() to get fresh user data including household_id
+            const user = await appClient.auth.me();
             console.log("[Household Page] Current user:", user?.email, "household_id:", user?.household_id);
             setCurrentUser(user);
 
@@ -43,7 +43,7 @@ const HouseholdPage = () => {
 
             // Use backend function to fetch household data (bypasses RLS issues)
             console.log("[Household Page] Fetching household with ID:", user.household_id);
-            const response = await base44.functions.invoke('getMyHousehold');
+            const response = await appClient.functions.invoke('getMyHousehold');
             console.log("[Household Page] Household response:", response.data);
 
             if (response.data.household) {
@@ -79,18 +79,18 @@ const HouseholdPage = () => {
             console.log("Starting comprehensive household fix...");
             
             // Step 1: Clear the invalid household_id
-            await base44.auth.updateMe({ household_id: null });
+            await appClient.auth.updateMe({ household_id: null });
             console.log("Cleared invalid household_id");
             
             // Step 2: Create a new household
-            const newHousehold = await base44.entities.Household.create({
+            const newHousehold = await appClient.entities.Household.create({
                 name: `${currentUser?.full_name || currentUser?.email || 'User'}'s Household`,
                 admin_id: currentUser.id
             });
             console.log("Created new household:", newHousehold.id);
             
             // Step 3: Link user to new household
-            await base44.auth.updateMe({ household_id: newHousehold.id });
+            await appClient.auth.updateMe({ household_id: newHousehold.id });
             console.log("Linked user to new household");
 
             // Step 4: Update component state immediately

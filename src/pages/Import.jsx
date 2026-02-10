@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -64,15 +64,15 @@ export default function ImportPage() {
 
     // Check authentication
     try {
-      const currentUser = await base44.auth.me();
+      const currentUser = await appClient.auth.me();
       if (!currentUser) {
         // Not logged in - redirect to login, then back here with URL preserved
-        base44.auth.redirectToLogin(window.location.href);
+        appClient.auth.redirectToLogin(window.location.href);
         return;
       }
     } catch (err) {
       // Not logged in - redirect to login
-      base44.auth.redirectToLogin(window.location.href);
+      appClient.auth.redirectToLogin(window.location.href);
       return;
     }
 
@@ -81,7 +81,7 @@ export default function ImportPage() {
     setMessage('Importing recipe...');
 
     try {
-      const response = await base44.functions.invoke('parseRecipe', {
+      const response = await appClient.functions.invoke('parseRecipe', {
         recipe_url: sharedUrl
       });
 

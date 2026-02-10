@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 import { createPageUrl } from '@/utils';
 import {
     ShoppingCart,
@@ -35,11 +35,11 @@ export default function FeaturesPage() {
 
   const handleGetStarted = async () => {
     try {
-      const isAuthenticated = await base44.auth.isAuthenticated();
+      const isAuthenticated = await appClient.auth.isAuthenticated();
       if (isAuthenticated) {
         navigate(createPageUrl('Dashboard'));
       } else {
-        await base44.auth.redirectToLogin();
+        await appClient.auth.redirectToLogin();
       }
     } catch (error) {
       console.error("Navigation failed:", error);

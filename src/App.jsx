@@ -1,17 +1,36 @@
 import "./App.css";
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClientInstance } from "@/lib/query-client";
 import VisualEditAgent from "@/lib/VisualEditAgent";
 import NavigationTracker from "@/lib/NavigationTracker";
+import { appClient } from "@/api/appClient";
 import { pagesConfig } from "./pages.config";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-dom";
 import PageNotFound from "./lib/PageNotFound";
 import { AuthProvider, useAuth } from "@/lib/AuthContext";
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+const DashboardPage = Pages.Dashboard ?? MainPage;
+
+const PUBLIC_ROUTES = [
+  { key: "Home", path: "/home" },
+  { key: "Features", path: "/features" },
+  { key: "Pricing", path: "/pricing" },
+  { key: "FAQs", path: "/faqs" },
+  { key: "About", path: "/about" },
+  { key: "Guide", path: "/guide" },
+  { key: "Privacy", path: "/privacy" },
+  { key: "TermsOfUse", path: "/terms-of-use" },
+  { key: "CookiePolicy", path: "/cookie-policy" },
+  { key: "LandingPage", path: "/landing" },
+  { key: "PublicLanding", path: "/public-landing" },
+  { key: "InstagramMarketing", path: "/instagram-marketing" },
+  { key: "JoinHousehold", path: "/joinhousehold" },
+];
 
 const LayoutWrapper = ({ children, currentPageName }) =>
   Layout ? (
@@ -19,6 +38,20 @@ const LayoutWrapper = ({ children, currentPageName }) =>
   ) : (
     <>{children}</>
   );
+
+const LoginRedirect = () => {
+  useEffect(() => {
+    appClient.auth.redirectToLogin(window.location.href).catch((error) => {
+      console.error("Failed to start auth redirect:", error);
+    });
+  }, []);
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center">
+      <div className="text-sm text-slate-600">Redirecting to sign-in...</div>
+    </div>
+  );
+};
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isAuthenticated } = useAuth();
@@ -37,7 +70,14 @@ const AuthenticatedApp = () => {
     const Public = Pages.PublicLanding ?? Pages.LandingPage ?? Pages.Home ?? (() => null);
     return (
       <Routes>
-        <Route path="*" element={<Public />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<LoginRedirect />} />
+        <Route path="/Dashboard" element={<LoginRedirect />} />
+        {PUBLIC_ROUTES.map(({ key, path }) => {
+          const Page = Pages[key];
+          return Page ? <Route key={path} path={path} element={<Page />} /> : null;
+        })}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     );
   }
@@ -47,9 +87,13 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route
         path="/"
+        element={<Navigate to="/dashboard" replace />}
+      />
+      <Route
+        path="/dashboard"
         element={
-          <LayoutWrapper currentPageName={mainPageKey}>
-            <MainPage />
+          <LayoutWrapper currentPageName="Dashboard">
+            <DashboardPage />
           </LayoutWrapper>
         }
       />

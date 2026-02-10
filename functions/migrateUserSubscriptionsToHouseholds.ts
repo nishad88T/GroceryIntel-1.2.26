@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 Deno.serve(async (req) => {
     try {
@@ -37,21 +38,22 @@ Deno.serve(async (req) => {
             if (hasSubscription) {
                 results.users_with_subscriptions++;
                 
-                if (user.household_id) {
+                const householdId = await resolveHouseholdId(base44, user);
+                if (householdId) {
                     try {
                         // Update the household's subscription tier
-                        await base44.asServiceRole.entities.Household.update(user.household_id, {
+                        await base44.asServiceRole.entities.Household.update(householdId, {
                             subscription_tier: userTier,
                             household_scan_limit: scanLimits[userTier] || 12,
                         });
                         
-                        console.log(`[Migration] Updated household ${user.household_id} to tier: ${userTier} for user ${user.email}`);
+                        console.log(`[Migration] Updated household ${householdId} to tier: ${userTier} for user ${user.email}`);
                         results.households_updated++;
                     } catch (error) {
-                        console.error(`[Migration] Error updating household ${user.household_id}:`, error);
+                        console.error(`[Migration] Error updating household ${householdId}:`, error);
                         results.errors.push({
                             user_email: user.email,
-                            household_id: user.household_id,
+                            household_id: householdId,
                             error: error.message
                         });
                     }
