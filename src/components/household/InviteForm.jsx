@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Copy, Check, Share2 } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 
 const InviteForm = ({ householdId, householdName }) => {
     const [inviteCode, setInviteCode] = useState(null);
@@ -20,7 +20,7 @@ const InviteForm = ({ householdId, householdName }) => {
         
         setLoading(true);
         try {
-            const response = await base44.functions.invoke('generateHouseholdCode', {
+            const response = await appClient.functions.invoke('generateHouseholdCode', {
                 household_id: householdId
             });
             

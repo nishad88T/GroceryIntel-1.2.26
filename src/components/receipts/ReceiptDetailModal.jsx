@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatCurrency } from '@/components/utils/currency';
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 import { InvokeLLM } from '@/integrations/Core';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -112,7 +112,7 @@ export default function ReceiptDetailModal({ receipt, onClose, onEdit }) {
     useEffect(() => {
         const loadUser = async () => {
             try {
-                const user = await base44.auth.me();
+                const user = await appClient.auth.me();
                 if (user && user.currency) {
                     setUserCurrency(user.currency);
                 }
@@ -168,7 +168,7 @@ export default function ReceiptDetailModal({ receipt, onClose, onEdit }) {
         console.log("Starting delete for receipt:", receipt.id);
         
         try {
-            await base44.entities.Receipt.delete(receipt.id);
+            await appClient.entities.Receipt.delete(receipt.id);
             console.log("Receipt deleted successfully");
             alert("Receipt deleted successfully!");
             onClose();

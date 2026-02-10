@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 import { Household } from '@/entities/Household';
 import {
     LayoutDashboard,
@@ -225,7 +225,7 @@ export default function Layout({ children }) {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const authenticatedPlatformUser = await base44.auth.me();
+                const authenticatedPlatformUser = await appClient.auth.me();
                 if (!authenticatedPlatformUser) {
                     throw new Error("User not authenticated.");
                 }
@@ -243,10 +243,10 @@ export default function Layout({ children }) {
                     welcome_email_sent: authenticatedPlatformUser.welcome_email_sent || false
                 };
 
-                await base44.auth.updateMe(userDataToUpdate);
-                console.log("User entity provisioned/updated via base44.auth.updateMe()");
+                await appClient.auth.updateMe(userDataToUpdate);
+                console.log("User entity provisioned/updated via appClient.auth.updateMe()");
 
-                const appUserRecord = await base44.auth.me();
+                const appUserRecord = await appClient.auth.me();
                 
                 if (!appUserRecord.household_id && appUserRecord.auto_create_household) {
                     console.log("User has no household_id, creating one for them...");
@@ -255,7 +255,7 @@ export default function Layout({ children }) {
                         admin_id: appUserRecord.id,
                     });
                     
-                    await base44.auth.updateMe({ household_id: newHousehold.id });
+                    await appClient.auth.updateMe({ household_id: newHousehold.id });
                     appUserRecord.household_id = newHousehold.id;
                     console.log(`Created new household ${newHousehold.name} and linked to user ${appUserRecord.email}`);
                 }
@@ -264,8 +264,8 @@ export default function Layout({ children }) {
                 
                 if (appUserRecord && !appUserRecord.welcome_email_sent) {
                     try {
-                        await base44.functions.invoke('sendWelcomeEmail');
-                        await base44.auth.updateMe({ welcome_email_sent: true });
+                        await appClient.functions.invoke('sendWelcomeEmail');
+                        await appClient.auth.updateMe({ welcome_email_sent: true });
                         console.log("Welcome email triggered and marked as sent for new user");
                     } catch (emailError) {
                         console.warn("Welcome email trigger failed (non-critical):", emailError);

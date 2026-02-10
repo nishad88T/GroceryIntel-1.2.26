@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Recipe } from "@/entities/all";
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -217,8 +217,8 @@ const RecipeDetailModal = ({ recipe, open, onClose, onDelete, isAdmin, currentUs
         console.log('handleDelete called for recipe:', recipe.id, recipe.title);
         setDeleting(true);
         try {
-            console.log('Calling base44.entities.Recipe.delete...');
-            await base44.entities.Recipe.delete(recipe.id);
+            console.log('Calling appClient.entities.Recipe.delete...');
+            await appClient.entities.Recipe.delete(recipe.id);
             console.log('Delete successful');
             onDelete(recipe.id);
             onClose();
@@ -505,14 +505,14 @@ function RecipesPageContent() {
     const loadData = async () => {
         try {
             setLoading(true);
-            const user = await base44.auth.me();
+            const user = await appClient.auth.me();
             setCurrentUser(user);
             setIsAdmin(user?.role === 'admin');
             setHouseholdId(user?.household_id);
             
             const [recipesData, foldersData] = await Promise.all([
                 Recipe.list("-created_date", 500),
-                user?.household_id ? base44.entities.RecipeFolder.filter({ household_id: user.household_id }) : []
+                user?.household_id ? appClient.entities.RecipeFolder.filter({ household_id: user.household_id }) : []
             ]);
             
             setRecipes(recipesData || []);
@@ -527,7 +527,7 @@ function RecipesPageContent() {
     const loadFolders = async () => {
         if (!householdId) return;
         try {
-            const foldersData = await base44.entities.RecipeFolder.filter({ household_id: householdId });
+            const foldersData = await appClient.entities.RecipeFolder.filter({ household_id: householdId });
             setFolders(foldersData || []);
         } catch (error) {
             console.error("Failed to load folders:", error);

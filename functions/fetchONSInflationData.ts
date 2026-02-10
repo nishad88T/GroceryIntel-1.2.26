@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 // ONS API endpoints for different food categories (MM23 = CPI Index)
 const ONS_ENDPOINTS = {
@@ -117,10 +118,11 @@ Deno.serve(async (req) => {
         // Log credit consumption (only if triggered by a user to avoid spamming logs for system runs, or log as system)
         if (user) {
             try {
+                const householdId = await resolveHouseholdId(base44, user);
                 await base44.asServiceRole.entities.CreditLog.create({
                     user_id: user.id,
                     user_email: user.email,
-                    household_id: user.household_id,
+                    household_id: householdId,
                     event_type: 'ons_data_api',
                     credits_consumed: 1,
                     timestamp: new Date().toISOString()
