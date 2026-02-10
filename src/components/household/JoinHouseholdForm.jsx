@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, UserPlus, CheckCircle } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 
 const JoinHouseholdForm = ({ onSuccess }) => {
     const [code, setCode] = useState('');
@@ -25,7 +25,7 @@ const JoinHouseholdForm = ({ onSuccess }) => {
         setSuccess(null);
 
         try {
-            const response = await base44.functions.invoke('joinHouseholdByCode', {
+            const response = await appClient.functions.invoke('joinHouseholdByCode', {
                 invite_code: code.toUpperCase()
             });
 

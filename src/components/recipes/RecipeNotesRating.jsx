@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,7 +33,7 @@ export default function RecipeNotesRating({ recipe, currentUser }) {
     const loadNotes = async () => {
         try {
             setLoading(true);
-            const notesData = await base44.entities.RecipeNote.filter({
+            const notesData = await appClient.entities.RecipeNote.filter({
                 recipe_id: recipe.id,
                 household_id: currentUser.household_id
             });
@@ -71,10 +71,10 @@ export default function RecipeNotesRating({ recipe, currentUser }) {
             };
 
             if (userNote) {
-                await base44.entities.RecipeNote.update(userNote.id, noteData);
+                await appClient.entities.RecipeNote.update(userNote.id, noteData);
                 toast.success("Note updated!");
             } else {
-                await base44.entities.RecipeNote.create(noteData);
+                await appClient.entities.RecipeNote.create(noteData);
                 toast.success("Note saved!");
             }
             
@@ -92,7 +92,7 @@ export default function RecipeNotesRating({ recipe, currentUser }) {
         if (!userNote || !confirm("Delete your note?")) return;
         
         try {
-            await base44.entities.RecipeNote.delete(userNote.id);
+            await appClient.entities.RecipeNote.delete(userNote.id);
             setUserNote(null);
             setNoteText("");
             setRating(0);

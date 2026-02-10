@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,7 +98,7 @@ export default function OCRTestingDashboard() {
         }
 
         try {
-            const response = await base44.functions.invoke('rerunTestRun', {
+            const response = await appClient.functions.invoke('rerunTestRun', {
                 original_test_run_id: testRun.id
             });
 
@@ -118,7 +118,7 @@ export default function OCRTestingDashboard() {
         }
 
         try {
-            const response = await base44.functions.invoke('deleteTestRun', {
+            const response = await appClient.functions.invoke('deleteTestRun', {
                 test_run_id: testRun.id
             });
 
@@ -134,7 +134,7 @@ export default function OCRTestingDashboard() {
 
     const loadData = async () => {
         try {
-            const userData = await base44.auth.me();
+            const userData = await appClient.auth.me();
             setUser(userData);
             
             if (userData.role !== 'admin') {
@@ -142,7 +142,7 @@ export default function OCRTestingDashboard() {
                 return;
             }
 
-            const runs = await base44.entities.TestRun.list('-created_date', 50);
+            const runs = await appClient.entities.TestRun.list('-created_date', 50);
             setTestRuns(runs || []);
         } catch (error) {
             console.error("Error loading test runs:", error);
@@ -158,7 +158,7 @@ export default function OCRTestingDashboard() {
         }
 
         try {
-            const response = await base44.functions.invoke('createTestRun', {
+            const response = await appClient.functions.invoke('createTestRun', {
                 name: newTestName,
                 description: newTestDescription
             });
@@ -185,11 +185,11 @@ export default function OCRTestingDashboard() {
 
             for (const file of files) {
                 // Upload file
-                const uploadResult = await base44.integrations.Core.UploadFile({ file });
+                const uploadResult = await appClient.integrations.Core.UploadFile({ file });
                 const file_url = uploadResult.file_url;
 
                 // Create receipt with is_test_data flag
-                const receipt = await base44.entities.Receipt.create({
+                const receipt = await appClient.entities.Receipt.create({
                     supermarket: "Test Receipt",
                     store_location: "Test Location",
                     purchase_date: new Date().toISOString().split('T')[0],
@@ -206,7 +206,7 @@ export default function OCRTestingDashboard() {
                 uploadedReceipts.push(receipt.id);
 
                 // Trigger background processing
-                base44.functions.invoke('processReceiptInBackground', {
+                appClient.functions.invoke('processReceiptInBackground', {
                     receiptId: receipt.id,
                     imageUrls: [file_url],
                     storeName: "Test Receipt",
@@ -218,7 +218,7 @@ export default function OCRTestingDashboard() {
 
             // Update test run with receipt IDs
             const updatedReceiptIds = [...(currentTestRun.receipt_ids || []), ...uploadedReceipts];
-            await base44.entities.TestRun.update(currentTestRun.id, {
+            await appClient.entities.TestRun.update(currentTestRun.id, {
                 receipt_ids: updatedReceiptIds,
                 total_receipts: updatedReceiptIds.length
             });
@@ -235,20 +235,20 @@ export default function OCRTestingDashboard() {
 
     const loadTestRunReceipts = async (testRunId) => {
         try {
-            const testRun = await base44.entities.TestRun.get(testRunId);
+            const testRun = await appClient.entities.TestRun.get(testRunId);
             if (!testRun || !testRun.receipt_ids || testRun.receipt_ids.length === 0) {
                 setReceipts([]);
                 return;
             }
 
             const receiptPromises = testRun.receipt_ids.map(id => 
-                base44.entities.Receipt.get(id).catch(() => null)
+                appClient.entities.Receipt.get(id).catch(() => null)
             );
             const loadedReceipts = (await Promise.all(receiptPromises)).filter(r => r !== null);
             
             // Calculate total items
             const totalItems = loadedReceipts.reduce((sum, r) => sum + (r.items?.length || 0), 0);
-            await base44.entities.TestRun.update(testRunId, { total_items: totalItems });
+            await appClient.entities.TestRun.update(testRunId, { total_items: totalItems });
 
             setReceipts(loadedReceipts);
             setCurrentTestRun({ ...testRun, total_items: totalItems });
@@ -312,7 +312,7 @@ export default function OCRTestingDashboard() {
         }
 
         try {
-            await base44.functions.invoke('submitOCRQualityFeedback', {
+            await appClient.functions.invoke('submitOCRQualityFeedback', {
                 test_run_id: currentTestRun.id,
                 receipt_id: currentReceipt.id,
                 feedback_items: feedbackItems,
@@ -341,7 +341,7 @@ export default function OCRTestingDashboard() {
         setCurrentTestRun(testRun);
         setAnalyzing(true);
         try {
-            const response = await base44.functions.invoke('analyzeOCRFeedbackBatch', {
+            const response = await appClient.functions.invoke('analyzeOCRFeedbackBatch', {
                 test_run_id: testRun.id
             });
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -20,7 +20,7 @@ export default function ShareTarget() {
     const handleSharedContent = async () => {
         try {
             // Check if user is logged in
-            const user = await base44.auth.me();
+            const user = await appClient.auth.me();
             if (!user) {
                 setStatus('login_required');
                 setMessage('Please log in to save shared content to your account.');
@@ -78,7 +78,7 @@ export default function ShareTarget() {
 
     const processRecipeUrl = async (url, user) => {
         try {
-            const response = await base44.functions.invoke('handleSharedContent', {
+            const response = await appClient.functions.invoke('handleSharedContent', {
                 type: 'recipe',
                 url: url,
                 user_id: user.id,
@@ -109,7 +109,7 @@ export default function ShareTarget() {
                 const blob = await response.blob();
                 const file = new File([blob], fileData.name, { type: fileData.type });
                 
-                const uploadResult = await base44.integrations.Core.UploadFile({ file });
+                const uploadResult = await appClient.integrations.Core.UploadFile({ file });
                 if (uploadResult?.file_url) {
                     uploadedUrls.push(uploadResult.file_url);
                 }
@@ -120,7 +120,7 @@ export default function ShareTarget() {
             }
 
             // Call backend to process receipts
-            const response = await base44.functions.invoke('handleSharedContent', {
+            const response = await appClient.functions.invoke('handleSharedContent', {
                 type: 'receipt',
                 file_urls: uploadedUrls,
                 user_id: user.id,
@@ -142,7 +142,7 @@ export default function ShareTarget() {
     };
 
     const handleLogin = () => {
-        base44.auth.redirectToLogin(window.location.href);
+        appClient.auth.redirectToLogin(window.location.href);
     };
 
     return (

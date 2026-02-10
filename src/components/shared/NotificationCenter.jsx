@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 import { Bell, Check, ExternalLink, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,13 +22,13 @@ export default function NotificationCenter() {
 
     const fetchNotifications = async () => {
         try {
-            const user = await base44.auth.me();
+            const user = await appClient.auth.me();
             if (!user) {
                 setLoading(false);
                 return;
             }
 
-            const notifs = await base44.entities.Notification.filter(
+            const notifs = await appClient.entities.Notification.filter(
                 { user_id: user.id },
                 '-created_date',
                 20
@@ -55,7 +55,7 @@ export default function NotificationCenter() {
 
     const markAsRead = async (notificationId) => {
         try {
-            await base44.entities.Notification.update(notificationId, { is_read: true });
+            await appClient.entities.Notification.update(notificationId, { is_read: true });
             setNotifications(prev => 
                 prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
             );
@@ -69,7 +69,7 @@ export default function NotificationCenter() {
         try {
             const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
             await Promise.all(
-                unreadIds.map(id => base44.entities.Notification.update(id, { is_read: true }))
+                unreadIds.map(id => appClient.entities.Notification.update(id, { is_read: true }))
             );
             setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
             setUnreadCount(0);
@@ -81,7 +81,7 @@ export default function NotificationCenter() {
     const deleteNotification = async (notificationId, e) => {
         e.stopPropagation();
         try {
-            await base44.entities.Notification.delete(notificationId);
+            await appClient.entities.Notification.delete(notificationId);
             setNotifications(prev => prev.filter(n => n.id !== notificationId));
             const wasUnread = notifications.find(n => n.id === notificationId)?.is_read === false;
             if (wasUnread) {

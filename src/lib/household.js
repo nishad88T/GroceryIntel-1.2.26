@@ -1,13 +1,13 @@
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 
 export async function fetchHouseholdContext() {
-    const user = await base44.auth.me();
+    const user = await appClient.auth.me();
     if (!user) {
         return { user: null, householdId: null, household: null, members: [] };
     }
 
     try {
-        const response = await base44.functions.invoke('getMyHousehold', {});
+        const response = await appClient.functions.invoke('getMyHousehold', {});
         const household = response?.data?.household || null;
         const members = response?.data?.members || [];
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Receipt, User, Budget } from "@/entities/all";
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -362,7 +362,7 @@ Format as a JSON object containing an 'items' array, 'totalEstimatedCost', 'budg
 - priority: high/medium/low based on purchase frequency/need
 - reason: Brief explanation for inclusion (e.g., "Weekly staple", "Low stock based on last purchase", "Good value protein")`;
 
-            const response = await base44.integrations.Core.InvokeLLM({ // Added await here
+            const response = await appClient.integrations.Core.InvokeLLM({ // Added await here
                 prompt: enhancedPrompt,
                 response_json_schema: {
                     type: "object",
@@ -395,7 +395,7 @@ Format as a JSON object containing an 'items' array, 'totalEstimatedCost', 'budg
 
             try {
                 if (currentUser && currentUser.id && currentUser.email && currentUser.household_id) {
-                    await base44.entities.CreditLog.create({
+                    await appClient.entities.CreditLog.create({
                         user_id: currentUser.id,
                         user_email: currentUser.email,
                         household_id: currentUser.household_id,
@@ -414,7 +414,7 @@ Format as a JSON object containing an 'items' array, 'totalEstimatedCost', 'budg
                         ? (currentUser.ai_enhancement_count_this_month || 0) + 1
                         : 1;
 
-                    await base44.auth.updateMe({
+                    await appClient.auth.updateMe({
                         ai_enhancement_count_this_month: newCount,
                         last_ai_enhancement_date: new Date().toISOString()
                     });

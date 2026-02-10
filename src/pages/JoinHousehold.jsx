@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -30,16 +30,16 @@ const JoinHouseholdPage = () => {
                 }
 
                 // Check if user is authenticated
-                const user = await base44.auth.me();
+                const user = await appClient.auth.me();
                 if (!user) {
                     // Redirect to login with return URL
                     const currentUrl = window.location.pathname + window.location.search;
-                    base44.auth.redirectToLogin(currentUrl);
+                    appClient.auth.redirectToLogin(currentUrl);
                     return;
                 }
 
                 // Fetch the invitation using the token
-                const invitations = await base44.entities.HouseholdInvitation.filter({ token });
+                const invitations = await appClient.entities.HouseholdInvitation.filter({ token });
                 
                 if (!invitations || invitations.length === 0) {
                     setError('Invitation not found or has expired');
@@ -72,7 +72,7 @@ const JoinHouseholdPage = () => {
                 }
 
                 // Fetch household details
-                const households = await base44.entities.Household.filter({ id: inv.household_id });
+                const households = await appClient.entities.Household.filter({ id: inv.household_id });
                 if (!households || households.length === 0) {
                     setError('Household not found');
                     setLoading(false);
@@ -99,7 +99,7 @@ const JoinHouseholdPage = () => {
 
         try {
             // Call backend function to mark invitation as accepted and update user's household_id
-            await base44.functions.invoke('markInvitationAccepted', {
+            await appClient.functions.invoke('markInvitationAccepted', {
                 invitation_id: invitation.id,
                 household_id: household.id
             });
