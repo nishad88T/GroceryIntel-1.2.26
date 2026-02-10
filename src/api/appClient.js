@@ -1,6 +1,10 @@
 import { supabase } from './supabaseClient';
 
 const authProvider = import.meta.env.VITE_SUPABASE_AUTH_PROVIDER || 'google';
+const oauthProviders = (import.meta.env.VITE_SUPABASE_OAUTH_PROVIDERS || '')
+  .split(',')
+  .map((provider) => provider.trim().toLowerCase())
+  .filter(Boolean);
 const storageBucket = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'public';
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -154,13 +158,51 @@ const auth = {
     return Boolean(data?.session);
   },
   async redirectToLogin(redirectTo) {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: authProvider,
-      options: { redirectTo: redirectTo || window.location.href }
+    const next = encodeURIComponent(redirectTo || window.location.href);
+    window.location.assign(`/login?next=${next}`);
+  },
+  async signInWithPassword({ email, password }) {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      throw error;
+    }
+    return data;
+  },
+  async signUpWithPassword({ email, password }) {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      throw error;
+    }
+    return data;
+  },
+  async signInWithOtp({ email, shouldCreateUser = true, emailRedirectTo }) {
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser,
+        emailRedirectTo: emailRedirectTo || window.location.origin
+      }
     });
     if (error) {
       throw error;
     }
+    return data;
+  },
+  async signInWithOAuth({ provider, redirectTo }) {
+    const selectedProvider = provider || authProvider;
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: selectedProvider,
+      options: {
+        redirectTo: redirectTo || window.location.origin
+      }
+    });
+    if (error) {
+      throw error;
+    }
+    return data;
+  },
+  getOAuthProviders() {
+    return oauthProviders;
   },
   async updateMe(updates) {
     const { data, error } = await supabase.auth.getUser();
