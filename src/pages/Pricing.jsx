@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Check, CreditCard } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 import { createPageUrl } from '@/utils';
 import LegalFooter from '@/components/shared/LegalFooter';
 
@@ -13,11 +13,11 @@ export default function PricingPage() {
 
   const handleGetStarted = async () => {
     try {
-      const isAuthenticated = await base44.auth.isAuthenticated();
+      const isAuthenticated = await appClient.auth.isAuthenticated();
       if (isAuthenticated) {
         navigate(createPageUrl('Dashboard'));
       } else {
-        await base44.auth.redirectToLogin();
+        await appClient.auth.redirectToLogin();
       }
     } catch (error) {
       console.error("Navigation failed:", error);

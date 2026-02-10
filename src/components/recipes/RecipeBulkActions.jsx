@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 import { Button } from "@/components/ui/button";
 import {
     Select,
@@ -37,7 +37,7 @@ export default function RecipeBulkActions({
             for (const recipe of selectedRecipes) {
                 // Check if user can delete (admin can delete any, users only their own)
                 if (isAdmin || recipe.type === 'user_parsed') {
-                    await base44.entities.Recipe.delete(recipe.id);
+                    await appClient.entities.Recipe.delete(recipe.id);
                 }
             }
             onActionComplete();
@@ -56,7 +56,7 @@ export default function RecipeBulkActions({
             const folderId = moveToFolder === "uncategorized" ? null : moveToFolder;
             for (const recipe of selectedRecipes) {
                 if (isAdmin || recipe.type === 'user_parsed') {
-                    await base44.entities.Recipe.update(recipe.id, { folder_id: folderId });
+                    await appClient.entities.Recipe.update(recipe.id, { folder_id: folderId });
                 }
             }
             setMoveToFolder("");

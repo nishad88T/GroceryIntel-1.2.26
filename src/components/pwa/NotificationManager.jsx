@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bell, BellOff, Check, X } from "lucide-react";
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 
 export default function NotificationManager({ onPermissionChange }) {
     const [permission, setPermission] = useState('default');
@@ -62,9 +62,9 @@ export default function NotificationManager({ onPermissionChange }) {
             });
 
             // Send subscription to your server
-            const user = await base44.auth.me();
+            const user = await appClient.auth.me();
             if (user) {
-                await base44.auth.updateMe({
+                await appClient.auth.updateMe({
                     push_subscription: JSON.stringify(subscription)
                 });
             }

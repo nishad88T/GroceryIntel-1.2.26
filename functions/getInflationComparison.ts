@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 Deno.serve(async (req) => {
     try {
@@ -15,6 +16,13 @@ Deno.serve(async (req) => {
             if (!user || user.role !== 'admin') {
                 return Response.json({ error: 'Unauthorized - admin only' }, { status: 403 });
             }
+        }
+        if (!user) {
+            return Response.json({ error: 'User required' }, { status: 401 });
+        }
+        const householdId = await resolveHouseholdId(base44, user);
+        if (!householdId) {
+            return Response.json({ error: 'User has no household' }, { status: 400 });
         }
 
         const CATEGORY_MAPPING = {
@@ -75,7 +83,7 @@ Deno.serve(async (req) => {
         const startDate = twelveMonthsAgo.toISOString().split('T')[0];
 
         const receipts = await base44.entities.Receipt.filter({
-            household_id: user.household_id,
+            household_id: householdId,
             purchase_date: { $gte: startDate }
         });
 

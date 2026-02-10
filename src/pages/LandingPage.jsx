@@ -17,7 +17,7 @@ import {
     Check
 } from "lucide-react";
 import { useLocation } from 'react-router-dom';
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 import { motion } from "framer-motion";
 import LegalFooter from '@/components/shared/LegalFooter';
 
@@ -47,7 +47,7 @@ export default function LandingPage() {
 
     const handleLogin = async () => {
         try {
-            await base44.auth.redirectToLogin();
+            await appClient.auth.redirectToLogin();
         } catch (error) {
             console.error("Login failed:", error);
         }
