@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Zap, Lock } from 'lucide-react';
@@ -62,7 +62,7 @@ export function FeatureProvider({ children }) {
     useEffect(() => {
         const loadUserFeatures = async () => {
             try {
-                const currentUser = await base44.auth.me();
+                const currentUser = await appClient.auth.me();
                 setUser(currentUser);
                 
                 // Check if user has admin role first - highest priority

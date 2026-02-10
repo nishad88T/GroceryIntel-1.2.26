@@ -34,7 +34,7 @@ import ReceiptDetailModal from "../components/receipts/ReceiptDetailModal";
 import DemoInflationModel from "../components/analytics/DemoInflationModel";
 import EnhancedCategoryInflation from "../components/analytics/EnhancedCategoryInflation";
 import { calculateEnhancedCategoryInflation, generateLLMInterpretationPrompt } from "../components/utils/categoryInflationCalculations";
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 
 export default function AnalyticsPage() {
     const [allReceipts, setAllReceipts] = useState([]);
@@ -158,8 +158,8 @@ export default function AnalyticsPage() {
     
     const fetchInflationComparison = async () => {
         try {
-            const { base44 } = await import('@/api/base44Client');
-            const response = await base44.functions.invoke('getInflationComparison', {});
+            const { appClient } = await import('@/api/appClient');
+            const response = await appClient.functions.invoke('getInflationComparison', {});
             if (response.data.success) {
                 setInflationComparisonData(response.data);
             }
@@ -184,7 +184,7 @@ export default function AnalyticsPage() {
                 const prompt = generateLLMInterpretationPrompt(categoryData, user?.currency || 'GBP');
                 
                 try {
-                    const response = await base44.integrations.Core.InvokeLLM({
+                    const response = await appClient.integrations.Core.InvokeLLM({
                         prompt,
                         add_context_from_internet: false
                     });

@@ -1,28 +1,64 @@
-import './App.css'
-import { Toaster } from "@/components/ui/toaster"
-import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClientInstance } from '@/lib/query-client'
-import VisualEditAgent from '@/lib/VisualEditAgent'
-import NavigationTracker from '@/lib/NavigationTracker'
-import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import PageNotFound from './lib/PageNotFound';
-import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import "./App.css";
+import { useEffect } from "react";
+import { Toaster } from "@/components/ui/toaster";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClientInstance } from "@/lib/query-client";
+import VisualEditAgent from "@/lib/VisualEditAgent";
+import NavigationTracker from "@/lib/NavigationTracker";
+import { appClient } from "@/api/appClient";
+import { pagesConfig } from "./pages.config";
+import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-dom";
+import PageNotFound from "./lib/PageNotFound";
+import { AuthProvider, useAuth } from "@/lib/AuthContext";
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+const DashboardPage = Pages.Dashboard ?? MainPage;
 
-const LayoutWrapper = ({ children, currentPageName }) => Layout ?
-  <Layout currentPageName={currentPageName}>{children}</Layout>
-  : <>{children}</>;
+const PUBLIC_ROUTES = [
+  { key: "Home", path: "/home" },
+  { key: "Features", path: "/features" },
+  { key: "Pricing", path: "/pricing" },
+  { key: "FAQs", path: "/faqs" },
+  { key: "About", path: "/about" },
+  { key: "Guide", path: "/guide" },
+  { key: "Privacy", path: "/privacy" },
+  { key: "TermsOfUse", path: "/terms-of-use" },
+  { key: "CookiePolicy", path: "/cookie-policy" },
+  { key: "LandingPage", path: "/landing" },
+  { key: "Login", path: "/login" },
+  { key: "PublicLanding", path: "/public-landing" },
+  { key: "InstagramMarketing", path: "/instagram-marketing" },
+  { key: "JoinHousehold", path: "/joinhousehold" },
+];
+
+const LayoutWrapper = ({ children, currentPageName }) =>
+  Layout ? (
+    <Layout currentPageName={currentPageName}>{children}</Layout>
+  ) : (
+    <>{children}</>
+  );
+
+const LoginRedirect = () => {
+  useEffect(() => {
+    appClient.auth.redirectToLogin(window.location.href).catch((error) => {
+      console.error("Failed to start auth redirect:", error);
+    });
+  }, []);
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center">
+      <div className="text-sm text-slate-600">Redirecting to sign-in...</div>
+    </div>
+  );
+};
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isAuthenticated } = useAuth();
 
-  // Show loading spinner while checking app public settings or auth
-  if (isLoadingPublicSettings || isLoadingAuth) {
+  // Loading spinner while checking Supabase session
+  if (isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
@@ -30,25 +66,38 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
-    }
+  // Not signed in: show PublicLanding for any route
+  if (!isAuthenticated) {
+    const Public = Pages.PublicLanding ?? Pages.LandingPage ?? Pages.Home ?? (() => null);
+    return (
+      <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/dashboard" element={<LoginRedirect />} />
+        <Route path="/Dashboard" element={<LoginRedirect />} />
+        {PUBLIC_ROUTES.map(({ key, path }) => {
+          const Page = Pages[key];
+          return Page ? <Route key={path} path={path} element={<Page />} /> : null;
+        })}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    );
   }
 
-  // Render the main app
+  // Signed in: render full app routes
   return (
     <Routes>
-      <Route path="/" element={
-        <LayoutWrapper currentPageName={mainPageKey}>
-          <MainPage />
-        </LayoutWrapper>
-      } />
+      <Route
+        path="/"
+        element={<Navigate to="/dashboard" replace />}
+      />
+      <Route
+        path="/dashboard"
+        element={
+          <LayoutWrapper currentPageName="Dashboard">
+            <DashboardPage />
+          </LayoutWrapper>
+        }
+      />
       {Object.entries(Pages).map(([path, Page]) => (
         <Route
           key={path}
@@ -65,9 +114,7 @@ const AuthenticatedApp = () => {
   );
 };
 
-
 function App() {
-
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
@@ -79,7 +126,7 @@ function App() {
         <VisualEditAgent />
       </QueryClientProvider>
     </AuthProvider>
-  )
+  );
 }
 
-export default App
+export default App;

@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle2, AlertCircle, Loader2, Play, RefreshCw, StopCircle } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 
 export default function HistoricalRecategorizationTool() {
     const [isProcessing, setIsProcessing] = useState(false);
@@ -39,7 +39,7 @@ export default function HistoricalRecategorizationTool() {
                 addLog(`Processing batch starting at skip=${skip}...`, 'info');
 
                 try {
-                    const response = await base44.functions.invoke('recategorizeAllReceipts', {
+                    const response = await appClient.functions.invoke('recategorizeAllReceipts', {
                         skip: skip,
                         limit: 5
                     });

@@ -14,6 +14,7 @@ import Import from './pages/Import';
 import InstagramMarketing from './pages/InstagramMarketing';
 import JoinHousehold from './pages/JoinHousehold';
 import LandingPage from './pages/LandingPage';
+import Login from './pages/Login';
 import Layout from './pages/Layout';
 import MealPlan from './pages/MealPlan';
 import Nutrition from './pages/Nutrition';
@@ -51,6 +52,7 @@ export const PAGES = {
     "InstagramMarketing": InstagramMarketing,
     "JoinHousehold": JoinHousehold,
     "LandingPage": LandingPage,
+    "Login": Login,
     "Layout": Layout,
     "MealPlan": MealPlan,
     "Nutrition": Nutrition,

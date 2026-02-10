@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 import { Household } from '@/entities/Household';
 import {
     LayoutDashboard,
@@ -401,7 +401,7 @@ const MainLayout = ({ children }) => {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const authenticatedPlatformUser = await base44.auth.me();
+                const authenticatedPlatformUser = await appClient.auth.me();
                 if (!authenticatedPlatformUser) {
                     throw new Error("User not authenticated.");
                 }
@@ -428,11 +428,11 @@ const MainLayout = ({ children }) => {
                 if (authenticatedPlatformUser.welcome_email_sent === undefined) userDataToUpdate.welcome_email_sent = false;
 
                 if (Object.keys(userDataToUpdate).length > 0) {
-                    await base44.auth.updateMe(userDataToUpdate);
-                    console.log("User entity provisioned/updated via base44.auth.updateMe()");
+                    await appClient.auth.updateMe(userDataToUpdate);
+                    console.log("User entity provisioned/updated via appClient.auth.updateMe()");
                 }
 
-                const appUserRecord = await base44.auth.me();
+                const appUserRecord = await appClient.auth.me();
 
                 // Removed auto-create household logic - users must explicitly create or join via Household page
                 // This prevents overwriting household memberships that were established via invite codes
@@ -442,7 +442,7 @@ const MainLayout = ({ children }) => {
                 if (appUserRecord && !appUserRecord.welcome_email_sent) {
                     try {
                         // Trigger Brevo automation via list addition (instant email)
-                        await base44.functions.invoke('updateBrevoContact', {
+                        await appClient.functions.invoke('updateBrevoContact', {
                             email: appUserRecord.email,
                             tags: ['trial_started'],
                             attributes: {
@@ -450,7 +450,7 @@ const MainLayout = ({ children }) => {
                             },
                             eventType: 'trial_started'
                         });
-                        await base44.auth.updateMe({ welcome_email_sent: true });
+                        await appClient.auth.updateMe({ welcome_email_sent: true });
                         console.log("User added to Brevo trial_started list - automation triggered");
                     } catch (brevoError) {
                         console.warn("Brevo automation trigger failed (non-critical):", brevoError);
