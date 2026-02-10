@@ -5,7 +5,7 @@ If you see `404: NOT_FOUND` on the Vercel domain:
 1. In Vercel Project Settings, confirm:
    - Framework preset: `Vite`
    - Root Directory: repository root (`.`)
-   - Install Command: `npm ci`
+   - Install Command: `npm install --no-audit --no-fund` (or keep `npm ci` only after lockfile is synced)
    - Build Command: `npm run build`
    - Output Directory: `dist`
 2. Redeploy the latest commit from `codex/review-repo-for-groceryintel-recreation-fvaivc`.
