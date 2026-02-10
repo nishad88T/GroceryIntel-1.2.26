@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { resolveHouseholdId } from './_helpers/household.ts';
 
 Deno.serve(async (req) => {
     try {
@@ -7,6 +8,11 @@ Deno.serve(async (req) => {
 
         if (!user) {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const householdId = await resolveHouseholdId(base44, user);
+        if (!householdId) {
+            return Response.json({ error: 'User has no household' }, { status: 400 });
         }
 
         // Calculate date ranges for current week and previous week
@@ -22,7 +28,7 @@ Deno.serve(async (req) => {
 
         // Fetch current week's receipts
         const currentWeekReceipts = await base44.entities.Receipt.filter({
-            household_id: user.household_id,
+            household_id: householdId,
             purchase_date: {
                 $gte: currentWeekStart.toISOString().split('T')[0],
                 $lte: currentWeekEnd.toISOString().split('T')[0]
@@ -31,7 +37,7 @@ Deno.serve(async (req) => {
 
         // Fetch previous week's receipts for comparison
         const previousWeekReceipts = await base44.entities.Receipt.filter({
-            household_id: user.household_id,
+            household_id: householdId,
             purchase_date: {
                 $gte: previousWeekStart.toISOString().split('T')[0],
                 $lte: previousWeekEnd.toISOString().split('T')[0]
@@ -99,7 +105,7 @@ Deno.serve(async (req) => {
         const cacheData = {
             user_id: user.id,
             user_email: user.email,
-            household_id: user.household_id,
+            household_id: householdId,
             cache_type: 'weekly_summary',
             period_start: currentWeekStart.toISOString().split('T')[0],
             period_end: currentWeekEnd.toISOString().split('T')[0],

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 import {
     ShoppingCart,
     TrendingUp,
@@ -68,7 +68,7 @@ export default function PublicLanding() {
     };
 
     const handleGetStarted = () => {
-        base44.auth.redirectToLogin();
+        appClient.auth.redirectToLogin();
     };
 
     const navItems = [

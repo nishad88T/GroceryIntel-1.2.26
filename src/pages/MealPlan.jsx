@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MealPlan, Recipe } from "@/entities/all";
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -167,7 +167,7 @@ function MealPlanPageContent() {
     useEffect(() => {
         const initializeWeek = async () => {
             try {
-                const user = await base44.auth.me();
+                const user = await appClient.auth.me();
                 setCurrentUser(user);
                 const weekStartsOn = user?.week_starts_on ?? 1; // Default to Monday (1)
                 setCurrentWeekStart(startOfWeek(new Date(), { weekStartsOn }));
@@ -191,7 +191,7 @@ function MealPlanPageContent() {
     const loadData = async () => {
         try {
             setLoading(true);
-            const user = await base44.auth.me(); // Re-fetches user, ensuring currentUser state is up-to-date
+            const user = await appClient.auth.me(); // Re-fetches user, ensuring currentUser state is up-to-date
             setCurrentUser(user);
 
             if (!user) {
@@ -296,7 +296,7 @@ function MealPlanPageContent() {
     const handleAIGenerate = async (preferences) => {
         setGenerating(true);
         try {
-            const response = await base44.functions.invoke('generateAIMealPlan', {
+            const response = await appClient.functions.invoke('generateAIMealPlan', {
                 week_start_date: format(currentWeekStart, "yyyy-MM-dd"),
                 ...preferences
             });

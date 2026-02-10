@@ -5,7 +5,7 @@ import { ShoppingCart, CheckCircle, Users, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 import LegalFooter from '@/components/shared/LegalFooter';
 
 const Section = ({ icon: Icon, title, children, bgColor = "bg-emerald-50" }) => (
@@ -39,11 +39,11 @@ export default function AboutPage() {
 
   const handleGetStarted = async () => {
     try {
-      const isAuthenticated = await base44.auth.isAuthenticated();
+      const isAuthenticated = await appClient.auth.isAuthenticated();
       if (isAuthenticated) {
         navigate(createPageUrl('Dashboard'));
       } else {
-        await base44.auth.redirectToLogin();
+        await appClient.auth.redirectToLogin();
       }
     } catch (error) {
       console.error("Navigation failed:", error);

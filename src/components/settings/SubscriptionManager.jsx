@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Sparkles, Check, Loader2, CreditCard, Clock } from "lucide-react";
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 import { format, addMonths } from 'date-fns';
 
 const PRICE_IDS = {
@@ -61,7 +61,7 @@ export default function SubscriptionManager({ user, onSubscriptionChange }) {
         setLoading(true);
         try {
             console.log('Creating checkout session with priceId:', priceId);
-            const response = await base44.functions.invoke('createCheckoutSession', { priceId });
+            const response = await appClient.functions.invoke('createCheckoutSession', { priceId });
             console.log('Checkout response:', response);
             
             if (response.data?.url) {
