@@ -154,19 +154,14 @@ const auth = {
     return Boolean(data?.session);
   },
   async redirectToLogin(redirectTo) {
-    if (authProvider === 'email') {
-      const unsupported = new Error('OAuth provider is not configured. Use email sign-in.');
-      unsupported.code = 'oauth_not_configured';
-      throw unsupported;
+    // Avoid hard redirecting to a disabled OAuth provider (which can render raw JSON errors).
+    // We route users to the in-app auth screen instead.
+    const target = new URL('/dashboard', window.location.origin);
+    if (redirectTo) {
+      target.searchParams.set('next', redirectTo);
     }
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: authProvider,
-      options: { redirectTo: redirectTo || window.location.href }
-    });
-    if (error) {
-      throw error;
-    }
+    target.searchParams.set('auth', authProvider === 'email' ? 'email' : 'fallback');
+    window.location.assign(target.toString());
   },
   async signInWithPassword({ email, password }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
