@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,7 @@ export default function PersonalInsights() {
 
     const loadUserData = async () => {
         try {
-            const user = await base44.auth.me();
+            const user = await appClient.auth.me();
             if (user.currency) {
                 setUserCurrency(user.currency);
             }
@@ -55,7 +55,7 @@ export default function PersonalInsights() {
         setLoading(true);
         setError(null);
         try {
-            const response = await base44.functions.invoke('generateAdvancedInsights', {});
+            const response = await appClient.functions.invoke('generateAdvancedInsights', {});
             
             if (response.data.success) {
                 setInsights(response.data);
@@ -73,7 +73,7 @@ export default function PersonalInsights() {
     const handleComputeSummary = async () => {
         setGenerating(true);
         try {
-            await base44.functions.invoke('computeWeeklySummary', {});
+            await appClient.functions.invoke('computeWeeklySummary', {});
             await fetchInsights();
         } catch (err) {
             console.error('Error computing summary:', err);

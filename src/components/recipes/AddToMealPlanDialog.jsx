@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MealPlan } from "@/entities/all";
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 import {
     Dialog,
     DialogContent,
@@ -44,7 +44,7 @@ export default function AddToMealPlanDialog({ recipe, open, onClose, onAdded }) 
     useEffect(() => {
         const loadUser = async () => {
             try {
-                const user = await base44.auth.me();
+                const user = await appClient.auth.me();
                 setCurrentUser(user);
                 // Use user's preference for week start day, default to Monday (1)
                 const weekStartsOn = user?.week_starts_on ?? 1;
@@ -74,7 +74,7 @@ export default function AddToMealPlanDialog({ recipe, open, onClose, onAdded }) 
         try {
             setSaving(true);
             // Re-fetch user to ensure latest household_id and shopping_frequency at time of save
-            const user = await base44.auth.me(); 
+            const user = await appClient.auth.me(); 
             
             if (!user) {
                 toast.error("Please log in to add recipes to your meal plan");

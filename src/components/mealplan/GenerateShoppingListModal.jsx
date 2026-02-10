@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Recipe, MealPlan } from "@/entities/all";
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 import {
     Dialog,
     DialogContent,
@@ -209,13 +209,13 @@ export default function GenerateShoppingListModal({ mealPlan, open, onClose }) {
             
             setRecipes(recipesData);
             
-            const maps = await base44.entities.IngredientMap.list("", 1000);
+            const maps = await appClient.entities.IngredientMap.list("", 1000);
             setIngredientMaps(maps || []);
             
             // Load recipe notes for all recipes in meal plan
-            const user = await base44.auth.me();
+            const user = await appClient.auth.me();
             if (user?.household_id) {
-                const notesData = await base44.entities.RecipeNote.filter({
+                const notesData = await appClient.entities.RecipeNote.filter({
                     household_id: user.household_id
                 });
                 
