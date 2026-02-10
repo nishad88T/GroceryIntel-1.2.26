@@ -96,7 +96,6 @@ const AuthenticatedApp = () => {
 
   // Not signed in: show PublicLanding for any route
   if (!isAuthenticated) {
-    const Public = Pages.PublicLanding ?? Pages.LandingPage ?? Pages.Home ?? (() => null);
     return (
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />

@@ -1,6 +1,5 @@
 import { supabase } from './supabaseClient';
 
-const authProvider = import.meta.env.VITE_SUPABASE_AUTH_PROVIDER || 'email';
 const storageBucket = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'public';
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -160,8 +159,14 @@ const auth = {
     if (redirectTo) {
       target.searchParams.set('next', redirectTo);
     }
-    target.searchParams.set('auth', authProvider === 'email' ? 'email' : 'fallback');
+    target.searchParams.set('auth', 'email');
     window.location.assign(target.toString());
+  },
+  async logout() {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      throw error;
+    }
   },
   async signInWithPassword({ email, password }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
