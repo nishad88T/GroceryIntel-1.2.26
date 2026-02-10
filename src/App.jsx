@@ -27,6 +27,7 @@ const PUBLIC_ROUTES = [
   { key: "TermsOfUse", path: "/terms-of-use" },
   { key: "CookiePolicy", path: "/cookie-policy" },
   { key: "LandingPage", path: "/landing" },
+  { key: "Login", path: "/login" },
   { key: "PublicLanding", path: "/public-landing" },
   { key: "InstagramMarketing", path: "/instagram-marketing" },
   { key: "JoinHousehold", path: "/joinhousehold" },
