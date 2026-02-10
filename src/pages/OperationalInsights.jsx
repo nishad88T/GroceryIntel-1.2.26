@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { base44 } from "@/api/base44Client"; // Changed from getComprehensiveCreditReport
+import { appClient } from "@/api/appClient"; // Changed from getComprehensiveCreditReport
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -150,7 +150,7 @@ const CreditMonitoringDashboard = () => {
         setError(null);
         try {
             const { start_date, end_date } = getDateRangeParams();
-            const response = await base44.functions.invoke('getComprehensiveCreditReport', { start_date, end_date });
+            const response = await appClient.functions.invoke('getComprehensiveCreditReport', { start_date, end_date });
             console.log("Credit report response:", response);
             if (response.data) {
                 setData(response.data);

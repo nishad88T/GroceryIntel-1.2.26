@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,7 +55,7 @@ export default function EditRecipePage() {
                 return;
             }
 
-            const recipeData = await base44.entities.Recipe.get(recipeId);
+            const recipeData = await appClient.entities.Recipe.get(recipeId);
             
             if (!recipeData || recipeData.type !== 'user_parsed') {
                 setError("Recipe not found or not editable");
@@ -117,7 +117,7 @@ export default function EditRecipePage() {
         
         try {
             setUploading(true);
-            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            const { file_url } = await appClient.integrations.Core.UploadFile({ file });
             return file_url;
         } catch (err) {
             console.error("Image upload failed:", err);
@@ -182,7 +182,7 @@ export default function EditRecipePage() {
                 : [];
 
             // Update recipe
-            await base44.entities.Recipe.update(recipe.id, {
+            await appClient.entities.Recipe.update(recipe.id, {
                 title: formData.title,
                 description: formData.description || null,
                 ingredients: ingredientsList,

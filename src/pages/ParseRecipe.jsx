@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,11 +57,11 @@ function ParseRecipeContent() {
 
     const loadUsage = async () => {
         try {
-            const user = await base44.auth.me();
+            const user = await appClient.auth.me();
             if (!user.household_id) return;
 
-            const household = await base44.entities.Household.get(user.household_id);
-            const recipes = await base44.entities.Recipe.filter({
+            const household = await appClient.entities.Household.get(user.household_id);
+            const recipes = await appClient.entities.Recipe.filter({
                 type: 'user_parsed',
                 household_id: user.household_id
             });
@@ -82,7 +82,7 @@ function ParseRecipeContent() {
         
         try {
             setUploading(true);
-            const { file_url } = await base44.integrations.Core.UploadFile({ file });
+            const { file_url } = await appClient.integrations.Core.UploadFile({ file });
             return file_url;
         } catch (err) {
             console.error("Image upload failed:", err);
@@ -111,7 +111,7 @@ function ParseRecipeContent() {
         setResult(null);
 
         try {
-            const user = await base44.auth.me();
+            const user = await appClient.auth.me();
             
             // Upload image if provided
             let imageUrl = null;
@@ -150,7 +150,7 @@ function ParseRecipeContent() {
                 : [];
 
             // Create recipe directly
-            const recipe = await base44.entities.Recipe.create({
+            const recipe = await appClient.entities.Recipe.create({
                 title: manualRecipe.title,
                 description: manualRecipe.description || null,
                 ingredients: ingredientsList,
@@ -167,8 +167,8 @@ function ParseRecipeContent() {
             });
 
             // Update household parsed count
-            const household = await base44.entities.Household.get(user.household_id);
-            await base44.entities.Household.update(user.household_id, {
+            const household = await appClient.entities.Household.get(user.household_id);
+            await appClient.entities.Household.update(user.household_id, {
                 parsed_recipes_this_month: (household.parsed_recipes_this_month || 0) + 1
             });
 
@@ -200,7 +200,7 @@ function ParseRecipeContent() {
         setResult(null);
 
         try {
-            const response = await base44.functions.invoke('parseRecipe', {
+            const response = await appClient.functions.invoke('parseRecipe', {
                 recipe_url: activeTab === "url" ? recipeUrl : null,
                 recipe_text: activeTab === "text" ? recipeText : null
             });

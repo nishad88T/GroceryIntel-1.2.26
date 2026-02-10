@@ -31,7 +31,7 @@ import { useUserFeatures } from '@/components/shared/FeatureGuard';
 import SubscriptionManager from '../components/settings/SubscriptionManager';
 import NotificationManager from '../components/pwa/NotificationManager';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 
 
 export default function SettingsPage() {
@@ -48,7 +48,7 @@ export default function SettingsPage() {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const currentUser = await base44.auth.me();
+                const currentUser = await appClient.auth.me();
                 setUser(currentUser);
                 setCurrency(currentUser.currency || 'GBP');
                 setWeekStartsOn(currentUser.week_starts_on ?? 1); // Set from user data, default to Monday
@@ -65,7 +65,7 @@ export default function SettingsPage() {
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            await base44.auth.updateMe({ 
+            await appClient.auth.updateMe({ 
                 currency,
                 week_starts_on: weekStartsOn
             });
@@ -80,7 +80,7 @@ export default function SettingsPage() {
     
     const handleLogout = async () => {
         try {
-            await base44.auth.logout();
+            await appClient.auth.logout();
             window.location.reload();
         } catch(error) {
             toast.error("Logout failed. Please try again.");
@@ -89,7 +89,7 @@ export default function SettingsPage() {
     
     const loadUserData = async () => {
         try {
-            const currentUser = await base44.auth.me();
+            const currentUser = await appClient.auth.me();
             setUser(currentUser);
             setCurrency(currentUser.currency || 'GBP');
             setWeekStartsOn(currentUser.week_starts_on ?? 1);
@@ -101,11 +101,11 @@ export default function SettingsPage() {
     const handleDeleteAccount = async () => {
         setIsDeleting(true);
         try {
-            const response = await base44.functions.invoke('deleteUserAccount');
+            const response = await appClient.functions.invoke('deleteUserAccount');
             if (response.data && response.data.message) {
                 toast.success(response.data.message);
                 setTimeout(async () => {
-                    await base44.auth.logout();
+                    await appClient.auth.logout();
                     window.location.href = '/';
                 }, 2000);
             }

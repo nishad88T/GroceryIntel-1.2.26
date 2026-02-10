@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -35,7 +35,7 @@ export default function RecipeFolderManager({
         if (!folderName.trim() || !householdId) return;
         setLoading(true);
         try {
-            await base44.entities.RecipeFolder.create({
+            await appClient.entities.RecipeFolder.create({
                 name: folderName.trim(),
                 household_id: householdId,
                 sort_order: folders.length
@@ -54,7 +54,7 @@ export default function RecipeFolderManager({
         if (!folderName.trim() || !editingFolder) return;
         setLoading(true);
         try {
-            await base44.entities.RecipeFolder.update(editingFolder.id, {
+            await appClient.entities.RecipeFolder.update(editingFolder.id, {
                 name: folderName.trim()
             });
             setFolderName("");
@@ -71,7 +71,7 @@ export default function RecipeFolderManager({
     const handleDeleteFolder = async (folder) => {
         if (!confirm(`Delete folder "${folder.name}"? Recipes in this folder will be moved to "Uncategorized".`)) return;
         try {
-            await base44.entities.RecipeFolder.delete(folder.id);
+            await appClient.entities.RecipeFolder.delete(folder.id);
             if (selectedFolder === folder.id) {
                 onFolderSelect("all");
             }

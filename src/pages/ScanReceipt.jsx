@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from "react";
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/components/utils/errorMessage";
+import { fetchHouseholdContext } from "@/lib/household";
 
 import CameraCapture from "../components/scan/CameraCapture";
 import ProcessingStatus from "../components/scan/ProcessingStatus";
@@ -72,7 +73,7 @@ export default function ScanReceipt() {
     const [currentUser, setCurrentUser] = useState(null);
 
     React.useEffect(() => {
-        base44.auth.me().then(setCurrentUser).catch(err => console.error("Failed to load user:", err));
+        appClient.auth.me().then(setCurrentUser).catch(err => console.error("Failed to load user:", err));
     }, []);
 
     const handleUpgrade = () => {
@@ -82,12 +83,12 @@ export default function ScanReceipt() {
     const updateScanCount = async () => {
         if (!currentUser?.tier || currentUser.tier !== 'premium') {
             try {
-                const currentUserData = await base44.auth.me();
+                const currentUserData = await appClient.auth.me();
                 const currentDate = new Date().toISOString().split('T')[0];
                 const lastResetDate = currentUserData.last_scan_reset_date;
                 
                 if (!lastResetDate) {
-                    await base44.auth.updateMe({
+                    await appClient.auth.updateMe({
                         monthly_scan_count: 1,
                         last_scan_reset_date: currentDate
                     });
@@ -98,12 +99,12 @@ export default function ScanReceipt() {
                                      (today.getMonth() - lastReset.getMonth());
                     
                     if (monthsDiff >= 1) {
-                        await base44.auth.updateMe({
+                        await appClient.auth.updateMe({
                             monthly_scan_count: 1,
                             last_scan_reset_date: currentDate
                         });
                     } else {
-                        await base44.auth.updateMe({
+                        await appClient.auth.updateMe({
                             monthly_scan_count: (currentUserData.monthly_scan_count || 0) + 1
                         });
                     }
@@ -175,8 +176,8 @@ export default function ScanReceipt() {
         setError(null);
 
         try {
-            const user = await base44.auth.me();
-            if (!user || !user.household_id) {
+            const { user, householdId } = await fetchHouseholdContext();
+            if (!user || !householdId) {
                 throw new Error("User or household not found");
             }
 
@@ -184,7 +185,7 @@ export default function ScanReceipt() {
             const uploadResults = [];
             for (let i = 0; i < files.length; i++) {
                 setProcessingMessage(`Uploading image ${i + 1} of ${files.length}...`);
-                const result = await base44.integrations.Core.UploadFile({ file: files[i] });
+                const result = await appClient.integrations.Core.UploadFile({ file: files[i] });
                 uploadResults.push(result);
             }
             
@@ -192,7 +193,7 @@ export default function ScanReceipt() {
 
             // Create receipt with processing_background status
             setProcessingMessage("Saving receipt...");
-            const newReceipt = await base44.entities.Receipt.create({
+            const newReceipt = await appClient.entities.Receipt.create({
                 supermarket: storeName || 'Unknown Store', // Updated for robustness
                 store_location: storeLocation,
                 purchase_date: purchaseDate,
@@ -200,7 +201,7 @@ export default function ScanReceipt() {
                 receipt_image_urls: file_urls,
                 currency: user.currency || 'GBP',
                 validation_status: 'processing_background', 
-                household_id: user.household_id,
+                household_id: householdId,
                 user_email: user.email,
                 items: []
             });
@@ -209,10 +210,10 @@ export default function ScanReceipt() {
 
             // Log credit consumption
             try {
-                await base44.entities.CreditLog.create({
+                await appClient.entities.CreditLog.create({
                     user_id: user.id,
                     user_email: user.email,
-                    household_id: user.household_id,
+                    household_id: householdId,
                     event_type: 'ocr_scan_background',
                     credits_consumed: 1,
                     reference_id: newReceipt.id,
@@ -226,12 +227,12 @@ export default function ScanReceipt() {
 
             // Start background processing (fire and forget)
             try {
-                base44.functions.invoke('processReceiptInBackground', {
+                appClient.functions.invoke('processReceiptInBackground', {
                     receiptId: newReceipt.id,
                     imageUrls: file_urls,
                     storeName: storeName || 'Unknown Store', // Updated for robustness
                     totalAmount: parseFloat(totalAmount) || 0, // Updated for robustness
-                    householdId: user.household_id,
+                    householdId: householdId,
                     userEmail: user.email
                 }).catch(err => {
                     console.log("Background processing initiated, may complete asynchronously:", err);

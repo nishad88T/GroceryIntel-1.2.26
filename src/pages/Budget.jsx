@@ -17,7 +17,7 @@ import BudgetHistory from "../components/budget/BudgetHistory";
 import { isWithinInterval, isPast, format, addDays, differenceInDays } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, RefreshCw, AlertTriangle } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { appClient } from "@/api/appClient";
 
 export default function BudgetPage() {
     const [budgets, setBudgets] = useState([]);
@@ -130,7 +130,7 @@ export default function BudgetPage() {
 
         setIsRollingOver(true);
         try {
-            const response = await base44.functions.invoke('rolloverBudget');
+            const response = await appClient.functions.invoke('rolloverBudget');
             
             if (response.data.success) {
                 const oldBudgetInfo = response.data.old_budget;

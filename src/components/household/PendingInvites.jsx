@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { base44 } from '@/api/base44Client';
+import { appClient } from '@/api/appClient';
 import { Loader2, Clock, CheckCircle, XCircle, Trash2, AlertTriangle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -19,7 +19,7 @@ const PendingInvites = ({ householdId }) => {
             setError(null);
             if (!householdId) return;
             
-            const inviteData = await base44.entities.HouseholdInvitation.filter({ household_id: householdId });
+            const inviteData = await appClient.entities.HouseholdInvitation.filter({ household_id: householdId });
             setInvitations(inviteData || []);
         } catch (error) {
             console.error("Error loading invitations:", error);
@@ -43,7 +43,7 @@ const PendingInvites = ({ householdId }) => {
         setError(null);
         
         try {
-            await base44.entities.HouseholdInvitation.delete(invitationId);
+            await appClient.entities.HouseholdInvitation.delete(invitationId);
             
             // Update local state
             setInvitations(prev => prev.filter(inv => inv.id !== invitationId));
@@ -84,7 +84,7 @@ const PendingInvites = ({ householdId }) => {
 
             // Delete all marked invitations
             for (const inv of toDelete) {
-                await base44.entities.HouseholdInvitation.delete(inv.id);
+                await appClient.entities.HouseholdInvitation.delete(inv.id);
             }
 
             // Reload invitations
