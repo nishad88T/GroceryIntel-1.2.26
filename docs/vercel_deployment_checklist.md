@@ -25,3 +25,17 @@ In Supabase Dashboard → Authentication → URL Configuration:
   - `http://localhost:3000/auth/callback` (local dev only)
 
 If Site URL is left as `http://localhost:3000`, Supabase confirmation emails can send users to localhost and fail in production.
+
+
+## Edge Functions required
+Some app features call Supabase Edge Functions and will fail with `Failed to send a request to the Edge Function` until deployed:
+- `processReceiptInBackground` (receipt scan)
+- `parseRecipe` (add recipe from URL/text)
+- `createCheckoutSession` (Stripe upgrade)
+- `getMyHousehold`, `joinHouseholdByCode`, `generateHouseholdCode` (household flows)
+
+Deploy these functions in Supabase and set required secrets before testing these features.
+
+## Admin access without DB role edits
+Set `VITE_ADMIN_EMAILS` (comma-separated) in Vercel env vars to grant admin UI access by email, e.g.
+`VITE_ADMIN_EMAILS=you@example.com,admin2@example.com`

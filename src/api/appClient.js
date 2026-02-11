@@ -7,6 +7,10 @@ const oauthProviders = (import.meta.env.VITE_SUPABASE_OAUTH_PROVIDERS || '')
   .filter(Boolean);
 const storageBucket = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET || 'public';
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+const adminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '')
+  .split(',')
+  .map((email) => email.trim().toLowerCase())
+  .filter(Boolean);
 
 const buildApiUrl = (path) => {
   if (!path.startsWith('/')) {
@@ -56,6 +60,26 @@ const applyFilters = (queryBuilder, filters) => {
     if (value === null) {
       return builder.is(key, null);
     }
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      if ('$ne' in value) {
+        return builder.neq(key, value.$ne);
+      }
+      if ('$gte' in value) {
+        return builder.gte(key, value.$gte);
+      }
+      if ('$lte' in value) {
+        return builder.lte(key, value.$lte);
+      }
+      if ('$gt' in value) {
+        return builder.gt(key, value.$gt);
+      }
+      if ('$lt' in value) {
+        return builder.lt(key, value.$lt);
+      }
+      if ('$ilike' in value) {
+        return builder.ilike(key, value.$ilike);
+      }
+    }
     return builder.eq(key, value);
   }, queryBuilder);
 };
@@ -104,12 +128,26 @@ const createEntityApi = (entityName) => {
       }
       return data;
     },
+    async get(id) {
+      const { data, error } = await supabase.from(table).select('*').eq('id', id).single();
+      if (error) {
+        throw error;
+      }
+      return data;
+    },
     async update(id, payload) {
       const { data, error } = await supabase.from(table).update(payload).eq('id', id).select('*').single();
       if (error) {
         throw error;
       }
       return data;
+    },
+    async delete(id) {
+      const { error } = await supabase.from(table).delete().eq('id', id);
+      if (error) {
+        throw error;
+      }
+      return { ok: true };
     }
   };
 };
@@ -148,7 +186,12 @@ const auth = {
       return null;
     }
     const profile = await getProfile(user.id);
-    return profile ? { ...user, ...profile } : user;
+    const mergedUser = profile ? { ...user, ...profile } : user;
+    const email = user.email?.toLowerCase();
+    if (email && adminEmails.includes(email)) {
+      return { ...mergedUser, role: 'admin' };
+    }
+    return mergedUser;
   },
   async isAuthenticated() {
     const { data, error } = await supabase.auth.getSession();
@@ -220,16 +263,36 @@ const auth = {
     if (!user) {
       throw new Error('No authenticated user');
     }
+
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .update(updates)
       .eq('id', user.id)
       .select('*')
       .single();
-    if (profileError) {
-      throw profileError;
+
+    if (!profileError) {
+      return { ...user, ...profile };
     }
-    return { ...user, ...profile };
+
+    const upsertPayload = {
+      id: user.id,
+      email: user.email,
+      full_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email,
+      ...updates
+    };
+
+    const { data: insertedProfile, error: upsertError } = await supabase
+      .from('profiles')
+      .upsert(upsertPayload, { onConflict: 'id' })
+      .select('*')
+      .single();
+
+    if (upsertError) {
+      throw upsertError;
+    }
+
+    return { ...user, ...insertedProfile };
   }
 };
 
@@ -238,7 +301,7 @@ const invokeFunction = async (name, payload) => {
   if (error) {
     throw error;
   }
-  return data;
+  return { data };
 };
 
 const integrations = {
