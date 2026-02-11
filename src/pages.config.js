@@ -1,4 +1,5 @@
 import About from './pages/About';
+import AuthCallback from './pages/AuthCallback';
 import AdminInsights from './pages/AdminInsights';
 import Analytics from './pages/Analytics';
 import Budget from './pages/Budget';
@@ -14,6 +15,7 @@ import Import from './pages/Import';
 import InstagramMarketing from './pages/InstagramMarketing';
 import JoinHousehold from './pages/JoinHousehold';
 import LandingPage from './pages/LandingPage';
+import Login from './pages/Login';
 import Layout from './pages/Layout';
 import MealPlan from './pages/MealPlan';
 import Nutrition from './pages/Nutrition';
@@ -36,6 +38,7 @@ import __Layout from './Layout.jsx';
 
 export const PAGES = {
     "About": About,
+    "AuthCallback": AuthCallback,
     "AdminInsights": AdminInsights,
     "Analytics": Analytics,
     "Budget": Budget,
@@ -51,6 +54,7 @@ export const PAGES = {
     "InstagramMarketing": InstagramMarketing,
     "JoinHousehold": JoinHousehold,
     "LandingPage": LandingPage,
+    "Login": Login,
     "Layout": Layout,
     "MealPlan": MealPlan,
     "Nutrition": Nutrition,
