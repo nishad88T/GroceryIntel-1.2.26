@@ -4,17 +4,35 @@ import { supabase } from "@/api/supabaseClient";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
+const blockedPostAuthPaths = new Set([
+  "/landing",
+  "/public-landing",
+  "/home",
+  "/features",
+  "/pricing",
+  "/faqs",
+  "/about",
+  "/guide",
+  "/privacy",
+  "/terms-of-use",
+  "/cookie-policy",
+  "/login",
+  "/auth/callback"
+]);
+
 const normalizeNextPath = (value) => {
   if (!value) return "/dashboard";
   if (value.startsWith("http://") || value.startsWith("https://")) {
     try {
       const url = new URL(value);
-      return `${url.pathname}${url.search}${url.hash}` || "/dashboard";
+      const normalized = `${url.pathname}${url.search}${url.hash}` || "/dashboard";
+      return blockedPostAuthPaths.has(url.pathname) ? "/dashboard" : normalized;
     } catch {
       return "/dashboard";
     }
   }
-  return value.startsWith("/") ? value : "/dashboard";
+  const candidate = value.startsWith("/") ? value : "/dashboard";
+  return blockedPostAuthPaths.has(candidate) ? "/dashboard" : candidate;
 };
 
 export default function AuthCallback() {

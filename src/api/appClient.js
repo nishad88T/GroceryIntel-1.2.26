@@ -158,7 +158,8 @@ const auth = {
     return Boolean(data?.session);
   },
   async redirectToLogin(redirectTo) {
-    const next = encodeURIComponent(redirectTo || window.location.href);
+    const defaultRedirect = `${window.location.origin}/dashboard`;
+    const next = encodeURIComponent(redirectTo || defaultRedirect);
     window.location.assign(`/login?next=${next}`);
   },
   async signInWithPassword({ email, password }) {

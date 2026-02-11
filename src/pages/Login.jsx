@@ -13,6 +13,29 @@ const providerLabels = {
   azure: "Azure"
 };
 
+const blockedPostAuthPaths = new Set([
+  "/landing",
+  "/public-landing",
+  "/home",
+  "/features",
+  "/pricing",
+  "/faqs",
+  "/about",
+  "/guide",
+  "/privacy",
+  "/terms-of-use",
+  "/cookie-policy",
+  "/login",
+  "/auth/callback"
+]);
+
+const normalizePostAuthPath = (requestedPath) => {
+  if (!requestedPath || blockedPostAuthPaths.has(requestedPath)) {
+    return "/dashboard";
+  }
+  return requestedPath;
+};
+
 export default function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -24,14 +47,15 @@ export default function Login() {
 
   const next = useMemo(() => {
     const requested = searchParams.get("next");
-    if (!requested) return "/dashboard";
+    if (!requested) return normalizePostAuthPath("/dashboard");
     try {
       const decoded = decodeURIComponent(requested);
-      return decoded.startsWith(window.location.origin)
+      const normalized = decoded.startsWith(window.location.origin)
         ? decoded.replace(window.location.origin, "") || "/dashboard"
         : "/dashboard";
+      return normalizePostAuthPath(normalized);
     } catch {
-      return "/dashboard";
+      return normalizePostAuthPath("/dashboard");
     }
   }, [searchParams]);
 
