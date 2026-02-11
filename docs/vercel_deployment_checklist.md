@@ -14,3 +14,14 @@ If you see `404: NOT_FOUND` on the Vercel domain:
 
 ## Branch hygiene
 Delete stale branches in GitHub after merge to avoid stale preview URLs and invalid branch references.
+
+
+## Supabase Auth URL settings (required for signup/magic link)
+In Supabase Dashboard → Authentication → URL Configuration:
+- **Site URL**: set this to your deployed production URL (not localhost).
+- **Additional Redirect URLs**: include all environments you use, for example:
+  - `https://grocery-intel-1-2-26.vercel.app/auth/callback`
+  - `https://grocery-intel-1-2-26-git-<branch>-<team>.vercel.app/auth/callback`
+  - `http://localhost:3000/auth/callback` (local dev only)
+
+If Site URL is left as `http://localhost:3000`, Supabase confirmation emails can send users to localhost and fail in production.

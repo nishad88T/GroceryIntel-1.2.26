@@ -1,4 +1,5 @@
 import About from './pages/About';
+import AuthCallback from './pages/AuthCallback';
 import AdminInsights from './pages/AdminInsights';
 import Analytics from './pages/Analytics';
 import Budget from './pages/Budget';
@@ -37,6 +38,7 @@ import __Layout from './Layout.jsx';
 
 export const PAGES = {
     "About": About,
+    "AuthCallback": AuthCallback,
     "AdminInsights": AdminInsights,
     "Analytics": Analytics,
     "Budget": Budget,

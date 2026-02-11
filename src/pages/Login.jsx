@@ -37,6 +37,8 @@ export default function Login() {
 
   const oauthProviders = appClient.auth.getOAuthProviders();
 
+  const callbackUrl = useMemo(() => `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`, [next]);
+
   const finishAuth = () => {
     navigate(next);
   };
@@ -63,7 +65,7 @@ export default function Login() {
     setMessage("");
 
     try {
-      const { user, session } = await appClient.auth.signUpWithPassword({ email, password });
+      const { user, session } = await appClient.auth.signUpWithPassword({ email, password, emailRedirectTo: callbackUrl });
       if (session) {
         finishAuth();
         return;
@@ -86,7 +88,7 @@ export default function Login() {
     try {
       await appClient.auth.signInWithOtp({
         email,
-        emailRedirectTo: `${window.location.origin}${next}`
+        emailRedirectTo: callbackUrl
       });
       setMessage("Magic link sent. Check your inbox to continue.");
     } catch (authError) {
@@ -104,7 +106,7 @@ export default function Login() {
     try {
       await appClient.auth.signInWithOAuth({
         provider,
-        redirectTo: `${window.location.origin}${next}`
+        redirectTo: callbackUrl
       });
     } catch (authError) {
       setError(authError.message || `Unable to sign in with ${provider}.`);
@@ -118,7 +120,7 @@ export default function Login() {
         <CardHeader>
           <CardTitle>Login or Sign up</CardTitle>
           <CardDescription>
-            Email/password works by default with Supabase. OAuth buttons only appear when enabled.
+            Email/password works by default with Supabase. OAuth buttons only appear when enabled. Email links return to this deployment automatically.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

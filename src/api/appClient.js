@@ -168,8 +168,14 @@ const auth = {
     }
     return data;
   },
-  async signUpWithPassword({ email, password }) {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+  async signUpWithPassword({ email, password, emailRedirectTo }) {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: emailRedirectTo || window.location.origin
+      }
+    });
     if (error) {
       throw error;
     }
