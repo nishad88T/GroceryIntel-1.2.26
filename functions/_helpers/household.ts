@@ -1,38 +1,41 @@
-export async function resolveHouseholdId(base44, user) {
-    if (!user) {
-        return null;
-    }
+import { createServiceClient } from './supabase.ts';
 
-    if (user.household_id) {
-        return user.household_id;
-    }
+export async function resolveHouseholdId(userId: string, fallbackHouseholdId?: string | null) {
+  if (fallbackHouseholdId) {
+    return fallbackHouseholdId;
+  }
 
-    const memberships = await base44.asServiceRole.entities.HouseholdMember.filter({
-        user_id: user.id
-    }, '-created_date', 1);
+  const service = createServiceClient();
+  const { data: membership } = await service
+    .from('household_members')
+    .select('household_id')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-    if (memberships && memberships.length > 0) {
-        return memberships[0].household_id;
-    }
-
-    return null;
+  return membership?.household_id || null;
 }
 
-export async function getHouseholdMembers(base44, householdId) {
-    const memberships = await base44.asServiceRole.entities.HouseholdMember.filter({
-        household_id: householdId
-    });
+export async function getHouseholdMembers(householdId: string) {
+  const service = createServiceClient();
+  const { data: memberships, error: membershipError } = await service
+    .from('household_members')
+    .select('*')
+    .eq('household_id', householdId);
 
-    if (!memberships || memberships.length === 0) {
-        return { memberships: [], profiles: [] };
-    }
+  if (membershipError || !memberships?.length) {
+    return { memberships: [], profiles: [] };
+  }
 
-    const profiles = await Promise.all(
-        memberships.map((member) => base44.asServiceRole.entities.User.get(member.user_id).catch(() => null))
-    );
+  const userIds = memberships.map((member) => member.user_id);
+  const { data: profiles } = await service
+    .from('profiles')
+    .select('*')
+    .in('id', userIds);
 
-    return {
-        memberships,
-        profiles: profiles.filter(Boolean)
-    };
+  return {
+    memberships,
+    profiles: profiles || []
+  };
 }

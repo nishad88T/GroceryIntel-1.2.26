@@ -103,7 +103,7 @@ const MainLayout = ({ children }) => {
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl shadow-lg overflow-hidden flex-shrink-0">
                 <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ac71e3ac2c3a563bdfc531/3463bc20c_GILogo2.png" 
+                  src="/favicon.svg" 
                   alt="GroceryIntel Logo" 
                   className="w-full h-full object-cover"
                 />
@@ -364,7 +364,7 @@ const MainLayout = ({ children }) => {
                 <div className="flex items-center gap-2">
                   <div className="w-10 h-10 rounded-lg overflow-hidden">
                     <img 
-                      src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ac71e3ac2c3a563bdfc531/3463bc20c_GILogo2.png" 
+                      src="/favicon.svg" 
                       alt="GroceryIntel Logo" 
                       className="w-full h-full object-cover"
                     />
@@ -407,13 +407,13 @@ const MainLayout = ({ children }) => {
                 }
 
                 console.log("Platform user authenticated:", authenticatedPlatformUser.email);
+                setUser(authenticatedPlatformUser);
 
                 // Only update missing/default fields, never touch household_id to preserve invite-based memberships
                 const userDataToUpdate = {};
                 if (!authenticatedPlatformUser.currency) userDataToUpdate.currency = 'GBP';
                 if (!authenticatedPlatformUser.tier) {
                     userDataToUpdate.tier = 'free';
-                    // Set trial end date to 1 month from now for new users
                     const trialEndDate = new Date();
                     trialEndDate.setMonth(trialEndDate.getMonth() + 1);
                     userDataToUpdate.trial_end_date = trialEndDate.toISOString();
@@ -421,27 +421,34 @@ const MainLayout = ({ children }) => {
                     userDataToUpdate.trial_recipes_parsed = 0;
                 }
                 if (authenticatedPlatformUser.monthly_scan_count === undefined) userDataToUpdate.monthly_scan_count = 0;
-                if (authenticatedPlatformUser.ai_enhancement_count_this_month === undefined) userDataToUpdate.ai_enhancement_count_this_month = 0;
                 if (!authenticatedPlatformUser.shopping_frequency) userDataToUpdate.shopping_frequency = 'weekly';
                 if (authenticatedPlatformUser.week_starts_on === undefined) userDataToUpdate.week_starts_on = 1;
                 if (authenticatedPlatformUser.auto_create_household === undefined) userDataToUpdate.auto_create_household = true;
                 if (authenticatedPlatformUser.welcome_email_sent === undefined) userDataToUpdate.welcome_email_sent = false;
 
                 if (Object.keys(userDataToUpdate).length > 0) {
-                    await appClient.auth.updateMe(userDataToUpdate);
-                    console.log("User entity provisioned/updated via appClient.auth.updateMe()");
+                    try {
+                        await appClient.auth.updateMe(userDataToUpdate);
+                        console.log("User entity provisioned/updated via appClient.auth.updateMe()");
+                    } catch (provisionError) {
+                        console.warn("Profile defaults update skipped (non-blocking):", provisionError.message || provisionError);
+                    }
                 }
 
-                const appUserRecord = await appClient.auth.me();
-
-                // Removed auto-create household logic - users must explicitly create or join via Household page
-                // This prevents overwriting household memberships that were established via invite codes
+                let appUserRecord = authenticatedPlatformUser;
+                try {
+                    const refreshedUser = await appClient.auth.me();
+                    if (refreshedUser) {
+                        appUserRecord = refreshedUser;
+                    }
+                } catch (refreshError) {
+                    console.warn("Profile refresh failed (non-blocking):", refreshError.message || refreshError);
+                }
 
                 setUser(appUserRecord);
 
                 if (appUserRecord && !appUserRecord.welcome_email_sent) {
                     try {
-                        // Trigger Brevo automation via list addition (instant email)
                         await appClient.functions.invoke('updateBrevoContact', {
                             email: appUserRecord.email,
                             tags: ['trial_started'],
@@ -458,13 +465,13 @@ const MainLayout = ({ children }) => {
                 }
 
             } catch (error) {
-                console.warn("Auth check failed or user not provisioned:", error.message);
+                console.warn("Auth check failed:", error.message);
                 setUser(null);
             } finally {
                 setLoading(false);
             }
         };
-        
+
         checkAuth();
     }, []);
 
@@ -474,7 +481,7 @@ const MainLayout = ({ children }) => {
                 <div className="text-center">
                     <div className="w-32 h-32 rounded-2xl mx-auto mb-6 animate-pulse overflow-hidden shadow-xl">
                         <img 
-                          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ac71e3ac2c3a563bdfc531/3463bc20c_GILogo2.png" 
+                          src="/favicon.svg" 
                           alt="GroceryIntel Logo" 
                           className="w-full h-full object-cover"
                         />

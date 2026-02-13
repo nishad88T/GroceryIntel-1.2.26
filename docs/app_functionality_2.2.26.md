@@ -497,7 +497,7 @@ functions that run at predefined intervals.
 background task to ensure the primary user flow isn't delayed.
 • Status Tracking: Failures are typically logged but don't block user
 experience.
-Base44
+Legacy platform
 Building on the previous explanations, here's how make.com and other
 features fit into your app's architecture:
 A. Make.com Integration (for Email Forwarding)
@@ -568,7 +568,7 @@ or optimize spending.
 3. Nutrition Analysis: The app leverages nutrition_facts (from API lookups)
 to provide insights on meal plan health, highlighting macro-nutrient
 balances or suggesting adjustments.
-Base44
+Legacy platform
 Okay, I will clarify these points for you, ensuring platform-agnostic
 explanations as requested.
 K. External APIs (Non-OCR) - Correction & Validation

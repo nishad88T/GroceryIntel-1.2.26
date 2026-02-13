@@ -27,7 +27,7 @@
 
 ---
 
-## Platform Configuration Required (Outside Base44)
+## Platform Configuration Required (Outside Supabase)
 
 ### 1. manifest.json Configuration
 
@@ -161,7 +161,7 @@ To enable server-sent push notifications:
 1. User shares a receipt image from their camera/gallery
 2. PWA receives file via share target
 3. Service worker stores file data temporarily
-4. ShareTarget page uploads files to Base44 storage
+4. ShareTarget page uploads files to object storage
 5. Calls `handleSharedContent` to trigger OCR processing
 6. User sees success message, receipt processes in background
 

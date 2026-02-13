@@ -1,58 +1,46 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createServiceClient, requireUser } from './_helpers/supabase.ts';
 import { getHouseholdMembers, resolveHouseholdId } from './_helpers/household.ts';
 
 Deno.serve(async (req) => {
-    try {
-        const base44 = createClientFromRequest(req);
-        const user = await base44.auth.me();
+  try {
+    const auth = await requireUser(req);
+    if (auth.error) return auth.error;
 
-        if (!user) {
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+    const { user } = auth;
+    const service = createServiceClient();
 
-        const householdId = await resolveHouseholdId(base44, user);
-        console.log("[getMyHousehold] User:", user.email, "household_id:", householdId);
+    const profileRes = await service
+      .from('profiles')
+      .select('household_id')
+      .eq('id', user.id)
+      .maybeSingle();
 
-        if (!householdId) {
-            return Response.json({ 
-                household: null,
-                members: [],
-                message: 'User has no household'
-            });
-        }
+    const householdId = await resolveHouseholdId(user.id, profileRes.data?.household_id || null);
 
-        // Use service role to bypass RLS and get the household
-        const households = await base44.asServiceRole.entities.Household.filter({ 
-            id: householdId 
-        });
-
-        console.log("[getMyHousehold] Households found:", households?.length);
-
-        if (!households || households.length === 0) {
-            return Response.json({ 
-                household: null,
-                members: [],
-                message: 'Household not found'
-            });
-        }
-
-        const household = households[0];
-
-        // Get all members of this household
-        const { memberships, profiles } = await getHouseholdMembers(base44, householdId);
-        console.log("[getMyHousehold] Members found:", profiles.length);
-
-        return Response.json({ 
-            household,
-            members: profiles,
-            memberships,
-            currentUserId: user.id
-        });
-
-    } catch (error) {
-        console.error('[getMyHousehold] Error:', error);
-        return Response.json({ 
-            error: error.message 
-        }, { status: 500 });
+    if (!householdId) {
+      return Response.json({ household: null, members: [], message: 'User has no household' });
     }
+
+    const { data: household } = await service
+      .from('households')
+      .select('*')
+      .eq('id', householdId)
+      .maybeSingle();
+
+    if (!household) {
+      return Response.json({ household: null, members: [], message: 'Household not found' });
+    }
+
+    const { memberships, profiles } = await getHouseholdMembers(householdId);
+
+    return Response.json({
+      household,
+      members: profiles,
+      memberships,
+      currentUserId: user.id
+    });
+  } catch (error) {
+    console.error('[getMyHousehold] Error:', error);
+    return Response.json({ error: error.message || 'Failed to load household' }, { status: 500 });
+  }
 });

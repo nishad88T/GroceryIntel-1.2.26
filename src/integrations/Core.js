@@ -1,5 +1,5 @@
 /**
- * Temporary stubs during Base44 -> Supabase migration.
+ * Temporary stubs during Legacy platform -> Supabase migration.
  * These allow the app to run while we replace calls properly.
  */
 
