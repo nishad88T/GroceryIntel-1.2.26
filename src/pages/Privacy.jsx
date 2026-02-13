@@ -103,7 +103,7 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-semibold mb-2">5. Data Sharing and Processors</h2>
             <p>Your data may be processed by trusted third-party service providers, including:</p>
             <ul className="list-disc pl-6 space-y-1 mt-1">
-              <li><strong>Base44</strong> – application hosting and core functionality</li>
+              <li><strong>Supabase</strong> – application hosting and core functionality</li>
               <li><strong>Vercel</strong> – website hosting and deployment</li>
               <li><strong>Stripe</strong> – secure payment processing</li>
             </ul>
@@ -113,7 +113,7 @@ export default function PrivacyPage() {
           <li>
             <h2 className="text-xl font-semibold mb-2">6. International Data Transfers</h2>
             <p>
-              Some infrastructure providers (such as Base44) currently operate servers outside the UK, including in the United States.
+              Some infrastructure providers (such as Supabase) currently operate servers outside the UK, including in the United States.
             </p>
             <p className="mt-2">
               Where international transfers occur, we rely on approved UK GDPR safeguards such as Standard Contractual Clauses (SCCs) or equivalent mechanisms. This section will be updated if transfer arrangements change.

@@ -103,7 +103,7 @@ const MainLayout = ({ children }) => {
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl shadow-lg overflow-hidden flex-shrink-0">
                 <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ac71e3ac2c3a563bdfc531/3463bc20c_GILogo2.png" 
+                  src="/favicon.svg" 
                   alt="GroceryIntel Logo" 
                   className="w-full h-full object-cover"
                 />
@@ -364,7 +364,7 @@ const MainLayout = ({ children }) => {
                 <div className="flex items-center gap-2">
                   <div className="w-10 h-10 rounded-lg overflow-hidden">
                     <img 
-                      src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ac71e3ac2c3a563bdfc531/3463bc20c_GILogo2.png" 
+                      src="/favicon.svg" 
                       alt="GroceryIntel Logo" 
                       className="w-full h-full object-cover"
                     />
@@ -481,7 +481,7 @@ const MainLayout = ({ children }) => {
                 <div className="text-center">
                     <div className="w-32 h-32 rounded-2xl mx-auto mb-6 animate-pulse overflow-hidden shadow-xl">
                         <img 
-                          src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ac71e3ac2c3a563bdfc531/3463bc20c_GILogo2.png" 
+                          src="/favicon.svg" 
                           alt="GroceryIntel Logo" 
                           className="w-full h-full object-cover"
                         />

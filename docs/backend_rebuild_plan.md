@@ -1,7 +1,7 @@
 # GroceryIntel Backend Rebuild Plan (Supabase + Vercel)
 
 ## Goal
-Rebuild the Base44 backend as a Supabase + Vercel architecture that preserves the existing app behavior, ordering, and business rules described in `docs/app_functionality_2.2.26.md`, while enabling a future mobile app build-out.
+Rebuild the Legacy platform backend as a Supabase + Vercel architecture that preserves the existing app behavior, ordering, and business rules described in `docs/app_functionality_2.2.26.md`, while enabling a future mobile app build-out.
 
 ## High-Level Architecture
 - **Supabase**
@@ -62,7 +62,7 @@ Use scheduled Supabase Edge functions (cron) for:
 - Brevo → Vercel for transactional emails.
 
 ## Next Implementation Steps
-1. Build a minimal supabase edge function scaffold for each internal Base44 function.
+1. Build a minimal supabase edge function scaffold for each internal Legacy platform function.
 2. Build Vercel endpoints for each external integration.
 3. Implement a single “receipt processing pipeline” end-to-end with logs.
 4. Add health checks, structured logging, and alerting.

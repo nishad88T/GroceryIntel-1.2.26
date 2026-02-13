@@ -1,81 +1,67 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import { resolveHouseholdId } from './_helpers/household.ts';
+import { createServiceClient, requireUser } from './_helpers/supabase.ts';
 
-// Generate a unique 6-character code
 function generateCode() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude similar looking chars
-    let code = '';
-    for (let i = 0; i < 6; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return code;
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i += 1) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
 }
 
 Deno.serve(async (req) => {
-    try {
-        const base44 = createClientFromRequest(req);
-        const user = await base44.auth.me();
+  try {
+    const auth = await requireUser(req);
+    if (auth.error) return auth.error;
 
-        if (!user) {
-            return Response.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+    const { user } = auth;
+    const body = await req.json().catch(() => ({}));
+    const householdId = body.household_id;
 
-        const { household_id } = await req.json();
-        const resolvedHouseholdId = household_id || await resolveHouseholdId(base44, user);
-
-        if (!resolvedHouseholdId) {
-            return Response.json({ error: 'household_id is required' }, { status: 400 });
-        }
-
-        // Check if household already has a code
-        const household = await base44.entities.Household.get(resolvedHouseholdId);
-        if (household.admin_id !== user.id) {
-            return Response.json({ error: 'Only household admins can generate invite codes.' }, { status: 403 });
-        }
-        
-        if (household.invite_code) {
-            return Response.json({ 
-                success: true, 
-                invite_code: household.invite_code,
-                message: 'Household already has an invite code'
-            });
-        }
-
-        // Generate a unique code
-        let code;
-        let isUnique = false;
-        let attempts = 0;
-        const maxAttempts = 10;
-
-        while (!isUnique && attempts < maxAttempts) {
-            code = generateCode();
-            
-            // Check if code already exists
-            const existing = await base44.entities.Household.filter({ invite_code: code });
-            
-            if (!existing || existing.length === 0) {
-                isUnique = true;
-            }
-            
-            attempts++;
-        }
-
-        if (!isUnique) {
-            return Response.json({ error: 'Failed to generate unique code' }, { status: 500 });
-        }
-
-        // Update household with the code
-        await base44.entities.Household.update(resolvedHouseholdId, { invite_code: code });
-
-        return Response.json({ 
-            success: true, 
-            invite_code: code 
-        });
-
-    } catch (error) {
-        console.error('Error generating household code:', error);
-        return Response.json({ 
-            error: error.message 
-        }, { status: 500 });
+    if (!householdId) {
+      return Response.json({ error: 'household_id is required' }, { status: 400 });
     }
+
+    const service = createServiceClient();
+    const { data: household } = await service
+      .from('households')
+      .select('*')
+      .eq('id', householdId)
+      .maybeSingle();
+
+    if (!household) {
+      return Response.json({ error: 'Household not found' }, { status: 404 });
+    }
+
+    if (household.admin_id !== user.id) {
+      return Response.json({ error: 'Only household admins can generate invite codes.' }, { status: 403 });
+    }
+
+    const rpcResult = await service.rpc('create_household_invite_code', { p_household_id: householdId });
+    if (!rpcResult.error && rpcResult.data) {
+      return Response.json({ success: true, invite_code: rpcResult.data });
+    }
+
+    const existingCode = household.invite_code;
+    if (existingCode) {
+      return Response.json({ success: true, invite_code: existingCode, message: 'Household already has an invite code' });
+    }
+
+    let code = '';
+    for (let i = 0; i < 10; i += 1) {
+      code = generateCode();
+      const { data: existing } = await service.from('households').select('id').eq('invite_code', code).maybeSingle();
+      if (!existing) break;
+    }
+
+    const { error: updateError } = await service.from('households').update({ invite_code: code }).eq('id', householdId);
+    if (updateError) {
+      throw updateError;
+    }
+
+    return Response.json({ success: true, invite_code: code });
+  } catch (error) {
+    console.error('[generateHouseholdCode] Error:', error);
+    return Response.json({ error: error.message || 'Failed to generate code' }, { status: 500 });
+  }
 });

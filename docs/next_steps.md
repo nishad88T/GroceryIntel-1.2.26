@@ -1,7 +1,7 @@
 # GroceryIntel Rebuild: Suggested Next Steps
 
 ## 1) Confirm Ground Truth
-- Export your current Supabase schema (tables, functions, policies, triggers) and compare against the Base44 spec.
+- Export your current Supabase schema (tables, functions, policies, triggers) and compare against the Legacy platform spec.
 - Validate the **existing** `profiles` + `household_members` model and keep household membership logic in DB helpers.
 
 ## 2) Implement Backend Foundations (No Scaffold SQL)
@@ -25,7 +25,7 @@
   - AWS Textract (OCR)
 
 ## 5) Migrate Remaining Functions
-- Use `docs/backend_function_map.md` to move each Base44 function to Edge or Vercel.
+- Use `docs/backend_function_map.md` to move each Legacy platform function to Edge or Vercel.
 - Split mixed functions into:
   - Vercel: external API calls
   - Supabase Edge: DB writes and aggregation

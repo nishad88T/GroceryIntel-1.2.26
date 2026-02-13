@@ -27,4 +27,4 @@ Set these in your Supabase Edge runtime:
 ## Notes
 - Vercel deployment uses the project’s Node.js version setting for the build runtime; this project targets Node 24.
 - `processReceiptInBackground` will call `VERCEL_OCR_ENDPOINT` if set, otherwise it falls back to `textractOCR`.
-- `generateReceiptInsightsInBackground` will call `VERCEL_LLM_ENDPOINT` if set, otherwise it falls back to Base44 LLM.
+- `generateReceiptInsightsInBackground` will call `VERCEL_LLM_ENDPOINT` if set, otherwise it falls back to Legacy platform LLM.
