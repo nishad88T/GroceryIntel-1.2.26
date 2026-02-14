@@ -1,2 +1,1 @@
-// Stub entity during Base44 → Supabase migration
-export class Budget {}
+export { Budget } from './all';
