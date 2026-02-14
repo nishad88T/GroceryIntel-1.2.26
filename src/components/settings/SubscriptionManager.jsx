@@ -7,6 +7,8 @@ import { Sparkles, Check, Loader2, CreditCard, Clock } from "lucide-react";
 import { appClient } from '@/api/appClient';
 import { format, addMonths } from 'date-fns';
 
+const ENABLE_STRIPE_CHECKOUT = import.meta.env.VITE_ENABLE_STRIPE_CHECKOUT === 'true';
+
 const PRICE_IDS = {
     standard_monthly: 'price_1SeM6tFuF5yflwgOfADy4HxY',
     standard_yearly: 'price_1SeM6tFuF5yflwgOq3JdTH27',
@@ -14,7 +16,7 @@ const PRICE_IDS = {
     plus_yearly: 'price_1SeM6tFuF5yflwgOO6P5SkVT',
 };
 
-const PlanCard = ({ title, price, interval, features, isCurrentPlan, onUpgrade, loading, recommended }) => (
+const PlanCard = ({ title, price, interval, features, isCurrentPlan, onUpgrade, loading, recommended, checkoutEnabled }) => (
     <Card className={`relative ${recommended ? 'border-emerald-500 border-2' : ''}`}>
         {recommended && (
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
@@ -42,11 +44,11 @@ const PlanCard = ({ title, price, interval, features, isCurrentPlan, onUpgrade, 
             ) : (
                 <Button 
                     onClick={onUpgrade} 
-                    disabled={loading}
+                    disabled={loading || !checkoutEnabled}
                     className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
                 >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                    Upgrade to {title}
+                    {checkoutEnabled ? `Upgrade to ${title}` : 'Checkout unavailable'}
                 </Button>
             )}
         </CardContent>
@@ -58,6 +60,10 @@ export default function SubscriptionManager({ user, onSubscriptionChange }) {
     const [selectedInterval, setSelectedInterval] = useState('yearly');
 
     const handleUpgrade = async (priceId) => {
+        if (!ENABLE_STRIPE_CHECKOUT) {
+            alert('Checkout is currently disabled. Set VITE_ENABLE_STRIPE_CHECKOUT=true after Stripe is configured.');
+            return;
+        }
         setLoading(true);
         try {
             console.log('Creating checkout session with priceId:', priceId);
@@ -179,6 +185,7 @@ export default function SubscriptionManager({ user, onSubscriptionChange }) {
                     isCurrentPlan={currentTier === 'standard'}
                     onUpgrade={() => handleUpgrade(selectedInterval === 'yearly' ? PRICE_IDS.standard_yearly : PRICE_IDS.standard_monthly)}
                     loading={loading}
+                    checkoutEnabled={ENABLE_STRIPE_CHECKOUT}
                 />
                 <PlanCard
                     title="Plus"
@@ -188,6 +195,7 @@ export default function SubscriptionManager({ user, onSubscriptionChange }) {
                     isCurrentPlan={currentTier === 'plus'}
                     onUpgrade={() => handleUpgrade(selectedInterval === 'yearly' ? PRICE_IDS.plus_yearly : PRICE_IDS.plus_monthly)}
                     loading={loading}
+                    checkoutEnabled={ENABLE_STRIPE_CHECKOUT}
                     recommended={true}
                 />
             </div>

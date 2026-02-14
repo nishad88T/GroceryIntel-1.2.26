@@ -644,7 +644,7 @@ export default function Dashboard() {
                                                 <div className="flex items-center gap-2">
                                                     <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
                                                         <img 
-                                                            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ac71e3ac2c3a563bdfc531/8bf57a74a_Roundedlogo21.png" 
+                                                            src="/favicon.svg" 
                                                             alt="Receipt" 
                                                             className="w-full h-full object-cover"
                                                         />

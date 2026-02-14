@@ -1,6 +1,6 @@
-# Backend Function Map (Base44 → Supabase Edge + Vercel)
+# Backend Function Map (Legacy platform → Supabase Edge + Vercel)
 
-This map groups existing Base44 functions by where they should live in the new architecture.
+This map groups existing Legacy platform functions by where they should live in the new architecture.
 
 ## Supabase Edge Functions (Internal / DB-centric)
 These functions primarily read/write Supabase data and should run close to the DB:
