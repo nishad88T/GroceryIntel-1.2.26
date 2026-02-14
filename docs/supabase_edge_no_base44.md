@@ -1,6 +1,6 @@
-# Supabase Edge Functions (No Legacy platform)
+# Supabase Edge Functions (No Base44)
 
-This project now uses Supabase-native Edge functions for core user flows. No `Legacy platform-App-Id` header is required.
+This project now uses Supabase-native Edge functions for core user flows. No `Base44-App-Id` header is required.
 
 ## Functions to deploy (core)
 Deploy these from the repo `functions/` folder:
@@ -71,12 +71,12 @@ How to test in Supabase dashboard test panel:
 ### Background/system functions
 `processReceiptInBackground` is currently invoked from authenticated frontend flow and expects user auth; it validates user/household before processing.
 
-## What changed vs Legacy platform
-No frontend or function should require `Legacy platform-App-Id`.
+## What changed vs Base44
+No frontend or function should require `Base44-App-Id`.
 
-Removed Legacy platform header compatibility from:
-- `src/api/appClient.js` (`Legacy platform-App-Id` injection removed)
-- `docs/vercel_deployment_checklist.md` (Legacy platform header compatibility section removed)
+Removed Base44 header compatibility from:
+- `src/api/appClient.js` (`Base44-App-Id` injection removed)
+- `docs/vercel_deployment_checklist.md` (Base44 header compatibility section removed)
 
 ## External integrations strategy
 External providers remain outside Supabase DB and are called via endpoint secrets:
