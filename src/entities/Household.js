@@ -1,5 +1,1 @@
-export class Household {
-  static async getMyHousehold() {
-    return null;
-  }
-}
+export { Household } from './all';
