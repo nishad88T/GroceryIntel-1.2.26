@@ -101,7 +101,7 @@ export default function ShareTarget() {
 
     const processReceiptFiles = async (fileDataArray, user) => {
         try {
-            // Upload files to Base44 storage first
+            // Upload files to object storage first
             const uploadedUrls = [];
             for (const fileData of fileDataArray) {
                 // Convert base64 back to file

@@ -119,7 +119,7 @@ export default function InstagramMarketing() {
                                 {/* Header with Logo */}
                                 <div className="flex items-center gap-2 mb-4" style={{ flex: '0 0 auto' }}>
                                     <img 
-                                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ac71e3ac2c3a563bdfc531/8d253ddee_Roundedlogo21.png"
+                                        src="/favicon.svg"
                                         alt="GroceryIntel Logo"
                                         className="w-10 h-10 rounded-lg"
                                         crossOrigin="anonymous"
@@ -178,7 +178,7 @@ export default function InstagramMarketing() {
                                 {/* Footer with Logo */}
                                 <div className="flex items-center gap-2 mt-4" style={{ flex: '0 0 auto' }}>
                                     <img 
-                                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ac71e3ac2c3a563bdfc531/8d253ddee_Roundedlogo21.png"
+                                        src="/favicon.svg"
                                         alt="GroceryIntel Logo"
                                         className="w-10 h-10 rounded-lg"
                                         crossOrigin="anonymous"
@@ -226,7 +226,7 @@ export default function InstagramMarketing() {
                                 {/* Header with Logo */}
                                 <div className="flex items-center gap-2 mb-3" style={{ flex: '0 0 auto' }}>
                                     <img 
-                                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ac71e3ac2c3a563bdfc531/8d253ddee_Roundedlogo21.png"
+                                        src="/favicon.svg"
                                         alt="GroceryIntel Logo"
                                         className="w-10 h-10 rounded-lg"
                                         crossOrigin="anonymous"
@@ -285,7 +285,7 @@ export default function InstagramMarketing() {
                                 {/* Header with Logo */}
                                 <div className="flex items-center gap-2 mb-3" style={{ flex: '0 0 auto' }}>
                                     <img 
-                                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ac71e3ac2c3a563bdfc531/8d253ddee_Roundedlogo21.png"
+                                        src="/favicon.svg"
                                         alt="GroceryIntel Logo"
                                         className="w-10 h-10 rounded-lg"
                                         crossOrigin="anonymous"
@@ -367,7 +367,7 @@ export default function InstagramMarketing() {
                             >
                                 <div className="flex items-center gap-2 mb-3" style={{ flex: '0 0 auto' }}>
                                     <img 
-                                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ac71e3ac2c3a563bdfc531/8d253ddee_Roundedlogo21.png"
+                                        src="/favicon.svg"
                                         alt="GroceryIntel Logo"
                                         className="w-10 h-10 rounded-lg"
                                         crossOrigin="anonymous"
@@ -436,7 +436,7 @@ export default function InstagramMarketing() {
                             >
                                 <div className="flex items-center gap-2 mb-3" style={{ flex: '0 0 auto' }}>
                                     <img 
-                                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ac71e3ac2c3a563bdfc531/8d253ddee_Roundedlogo21.png"
+                                        src="/favicon.svg"
                                         alt="GroceryIntel Logo"
                                         className="w-10 h-10 rounded-lg"
                                         crossOrigin="anonymous"
@@ -509,7 +509,7 @@ export default function InstagramMarketing() {
                             >
                                 <div className="flex items-center gap-2 mb-3" style={{ flex: '0 0 auto' }}>
                                     <img 
-                                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ac71e3ac2c3a563bdfc531/8d253ddee_Roundedlogo21.png"
+                                        src="/favicon.svg"
                                         alt="GroceryIntel Logo"
                                         className="w-10 h-10 rounded-lg"
                                         crossOrigin="anonymous"
@@ -563,7 +563,7 @@ export default function InstagramMarketing() {
                             >
                                 <div className="flex items-center gap-2 mb-3" style={{ flex: '0 0 auto' }}>
                                     <img 
-                                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ac71e3ac2c3a563bdfc531/8d253ddee_Roundedlogo21.png"
+                                        src="/favicon.svg"
                                         alt="GroceryIntel Logo"
                                         className="w-10 h-10 rounded-lg"
                                         crossOrigin="anonymous"
@@ -635,7 +635,7 @@ export default function InstagramMarketing() {
                             >
                                 <div className="flex items-center gap-2 mb-3" style={{ flex: '0 0 auto' }}>
                                     <img 
-                                        src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/68ac71e3ac2c3a563bdfc531/8d253ddee_Roundedlogo21.png"
+                                        src="/favicon.svg"
                                         alt="GroceryIntel Logo"
                                         className="w-10 h-10 rounded-lg"
                                         crossOrigin="anonymous"

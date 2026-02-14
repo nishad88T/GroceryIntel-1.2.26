@@ -9,7 +9,7 @@ Examples:
 - `processReceiptInBackground` expects a `householdId` in the payload and updates household scan counters by household ID.
 
 ## 2) RLS Assumptions
-Many functions use the Base44 service role client (`base44.asServiceRole`), which bypasses RLS. This implies that RLS rules must still be enforced for client-facing operations, while server-side workers should perform their own authorization checks.
+Many functions use the Legacy platform service role client (`legacy_platform.asServiceRole`), which bypasses RLS. This implies that RLS rules must still be enforced for client-facing operations, while server-side workers should perform their own authorization checks.
 
 ## 3) Suggested Refactors
 - Replace direct reads of `user.household_id` with a lookup from `household_members` (or expose a view that joins `profiles` to active household membership).

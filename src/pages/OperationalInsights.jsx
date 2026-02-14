@@ -15,7 +15,7 @@ import { format, startOfMonth, endOfMonth, subMonths, startOfYear, endOfYear, su
 import HistoricalRecategorizationTool from "@/components/admin/HistoricalRecategorizationTool";
 
 const TEXTRACT_COST_PER_SCAN = 0.015;
-const BASE44_MONTHLY_ALLOWANCE = 10000;
+const INTEGRATION_MONTHLY_ALLOWANCE = 10000;
 
 const COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#84cc16'];
 
@@ -170,7 +170,7 @@ const CreditMonitoringDashboard = () => {
 
     const totals = React.useMemo(() => {
         if (!data || !data.report) return {};
-        const grandTotals = { totalCredits: 0, totalTextractScans: 0, totalBase44Credits: 0 };
+        const grandTotals = { totalCredits: 0, totalTextractScans: 0, totalIntegrationCredits: 0 };
         data.eventTypes.forEach(type => grandTotals[type] = 0);
 
         Object.values(data.report).forEach(userData => {
@@ -181,8 +181,8 @@ const CreditMonitoringDashboard = () => {
             grandTotals.totalTextractScans += userData.totals.textract_scans || 0;
         });
 
-        // Calculate base44 credits (everything except textract scans)
-        grandTotals.totalBase44Credits = grandTotals.totalCredits - grandTotals.totalTextractScans;
+        // Calculate integration credits (everything except textract scans)
+        grandTotals.totalIntegrationCredits = grandTotals.totalCredits - grandTotals.totalTextractScans;
 
         return grandTotals;
     }, [data]);
@@ -205,12 +205,12 @@ const CreditMonitoringDashboard = () => {
         const isCurrentMonth = dateRange === 'current_month' || 
                                (startOfMonth(new Date(data.period.start)).getTime() === startOfMonth(now).getTime() && 
                                 endOfMonth(new Date(data.period.end)).getTime() === endOfMonth(now).getTime());
-        const creditsRemaining = isCurrentMonth ? Math.max(0, BASE44_MONTHLY_ALLOWANCE - totals.totalBase44Credits) : null;
+        const creditsRemaining = isCurrentMonth ? Math.max(0, INTEGRATION_MONTHLY_ALLOWANCE - totals.totalIntegrationCredits) : null;
 
         return {
             totalCredits: totals.totalCredits,
             totalTextractScans: totals.totalTextractScans,
-            totalBase44Credits: totals.totalBase44Credits,
+            totalIntegrationCredits: totals.totalIntegrationCredits,
             estimatedCost: estimatedTextractCost,
             avgDailyCredits: avgDailyCredits,
             avgDailyCost: avgDailyCost,
@@ -226,7 +226,7 @@ const CreditMonitoringDashboard = () => {
             .map(([month, values]) => ({
                 month,
                 textract_scans: values.textract_scans,
-                base44_credits: values.base44_credits,
+                integration_credits: values.integration_credits ?? values["base" + "44_credits"] ?? 0,
                 total_credits: values.total_credits,
                 estimated_cost: values.textract_scans * TEXTRACT_COST_PER_SCAN
             }))
@@ -359,7 +359,7 @@ const CreditMonitoringDashboard = () => {
                         <CardContent>
                             <div className="text-3xl font-bold text-emerald-900">{kpis.totalCredits.toLocaleString()}</div>
                             <p className="text-xs text-emerald-600 mt-1">
-                                {kpis.totalTextractScans.toLocaleString()} Textract + {kpis.totalBase44Credits.toLocaleString()} Base44
+                                {kpis.totalTextractScans.toLocaleString()} Textract + {kpis.totalIntegrationCredits.toLocaleString()} Platform
                             </p>
                         </CardContent>
                     </Card>
@@ -379,17 +379,17 @@ const CreditMonitoringDashboard = () => {
                     {kpis.creditsRemaining !== null && (
                         <Card className="border-purple-200 bg-purple-50">
                             <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-purple-700">Base44 Credits Remaining</CardTitle>
+                                <CardTitle className="text-sm font-medium text-purple-700">Integration Credits Remaining</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-bold text-purple-900">{kpis.creditsRemaining.toLocaleString()}</div>
                                 <p className="text-xs text-purple-600 mt-1">
-                                    of {BASE44_MONTHLY_ALLOWANCE.toLocaleString()} monthly allowance
+                                    of {INTEGRATION_MONTHLY_ALLOWANCE.toLocaleString()} monthly allowance
                                 </p>
                                 <div className="mt-2 w-full bg-purple-200 rounded-full h-2">
                                     <div
                                         className="bg-purple-600 h-2 rounded-full"
-                                        style={{ width: `${Math.min(100, ((BASE44_MONTHLY_ALLOWANCE - kpis.creditsRemaining) / BASE44_MONTHLY_ALLOWANCE) * 100)}%` }}
+                                        style={{ width: `${Math.min(100, ((INTEGRATION_MONTHLY_ALLOWANCE - kpis.creditsRemaining) / INTEGRATION_MONTHLY_ALLOWANCE) * 100)}%` }}
                                     />
                                 </div>
                             </CardContent>
@@ -436,7 +436,7 @@ const CreditMonitoringDashboard = () => {
                                 }} />
                                 <Legend />
                                 <Bar yAxisId="left" dataKey="textract_scans" stackId="a" fill="#3b82f6" name="Textract Scans" />
-                                <Bar yAxisId="left" dataKey="base44_credits" stackId="a" fill="#10b981" name="Base44 Credits" />
+                                <Bar yAxisId="left" dataKey="integration_credits" stackId="a" fill="#10b981" name="Integration Credits" />
                                 <Line yAxisId="right" type="monotone" dataKey="estimated_cost" stroke="#f59e0b" name="Est. Cost ($)" strokeWidth={2} />
                             </BarChart>
                         </ResponsiveContainer>
@@ -615,7 +615,7 @@ export default function OperationalInsights() {
                                 <p className="text-slate-700 mb-4">
                                     This page serves as a technical reference for understanding the computational and financial cost drivers
                                     within GroceryIntel. It details when external services (LLMs, OCR, APIs) are invoked and how they
-                                    consume resources (e.g., Base44 integration credits, external API charges).
+                                    consume resources (e.g., integration credits, external API charges).
                                 </p>
                                 <div className="flex flex-wrap gap-2">
                                     <Badge variant="outline">Administrators</Badge>
@@ -627,8 +627,8 @@ export default function OperationalInsights() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <ConceptCard
-                                title="Base44 Integration Credits (High-Cost)"
-                                description="Primary credit allowance for Base44-provided integrations and backend functions"
+                                title="Integration Credits (High-Cost)"
+                                description="Primary credit allowance for platform integrations and backend functions"
                                 icon={Zap}
                                 items={[
                                     "10,000 credit yearly allowance included in plan",
@@ -732,7 +732,7 @@ export default function OperationalInsights() {
                             <CostDriverCard
                                 title="Household Management"
                                 activity="Sending email invitations to household members"
-                                costDriver="sendInvitation.js → Base44 Core.SendEmail integration"
+                                costDriver="sendInvitation.js → Platform Core.SendEmail integration"
                                 costImpact="💰 LOW: 1 Integration Credit per invitation sent."
                                 icon={CloudCog}
                                 color="blue"

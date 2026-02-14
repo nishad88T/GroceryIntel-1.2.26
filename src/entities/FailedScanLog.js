@@ -1,2 +1,2 @@
-// Stub entity during Base44 → Supabase migration
+// Stub entity during Legacy platform → Supabase migration
 export class FailedScanLog {}
